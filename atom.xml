@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[My Octopress Blog]]></title>
+  <title><![CDATA[Xiaobin]]></title>
   <link href="http://cyclecircle.github.io/atom.xml" rel="self"/>
   <link href="http://cyclecircle.github.io/"/>
-  <updated>2015-06-29T17:57:28+08:00</updated>
+  <updated>2015-06-30T18:27:45+08:00</updated>
   <id>http://cyclecircle.github.io/</id>
   <author>
-    <name><![CDATA[Your Name]]></name>
+    <name><![CDATA[xiaobin]]></name>
     
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
   
   <entry>
-    <title type="html"><![CDATA[My Anothre First Octopress Blog]]></title>
+    <title type="html"><![CDATA[my anothre first octopress blog]]></title>
     <link href="http://cyclecircle.github.io/blog/2015/06/29/my-anothre-first-octopress-blog/"/>
     <updated>2015-06-29T17:23:34+08:00</updated>
     <id>http://cyclecircle.github.io/blog/2015/06/29/my-anothre-first-octopress-blog</id>
