@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "c++ 指针和引用"
+title: "C++ 指针和引用"
 date: 2015-07-01 14:28:58 +0800
 comments: true
 categories: 
