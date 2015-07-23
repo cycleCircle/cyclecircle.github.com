@@ -1,6 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>http://cyclecircle.github.io/blog/2015/07/23/multi-thread-05-semaphore/</loc>
+    <lastmod>2015-07-23T11:18:47+08:00</lastmod>
+  </url>
+  <url>
+    <loc>http://cyclecircle.github.io/blog/2015/07/23/multi-thread-04-condition/</loc>
+    <lastmod>2015-07-23T10:24:26+08:00</lastmod>
+  </url>
+  <url>
+    <loc>http://cyclecircle.github.io/blog/2015/07/22/multi-thread-03-read-write-lock/</loc>
+    <lastmod>2015-07-22T17:34:21+08:00</lastmod>
+  </url>
+  <url>
+    <loc>http://cyclecircle.github.io/blog/2015/07/22/multi-thread-02-threadlocal/</loc>
+    <lastmod>2015-07-22T10:57:52+08:00</lastmod>
+  </url>
+  <url>
     <loc>http://cyclecircle.github.io/blog/2015/07/21/multi-thread-01-communication/</loc>
     <lastmod>2015-07-21T16:22:05+08:00</lastmod>
   </url>
