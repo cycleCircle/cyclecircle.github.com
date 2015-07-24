@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "JAVA多线程-信号灯Semaphore"
+title: "JAVA多线程05-信号灯Semaphore"
 date: 2015-07-23 11:18:47 +0800
 comments: true
 categories: 
