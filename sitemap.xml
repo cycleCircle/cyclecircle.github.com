@@ -1,6 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>http://cyclecircle.github.io/blog/2015/07/24/multi-thread-08-exchanger/</loc>
+    <lastmod>2015-07-24T15:33:12+08:00</lastmod>
+  </url>
+  <url>
+    <loc>http://cyclecircle.github.io/blog/2015/07/24/multi-thread-07-countdownlatch/</loc>
+    <lastmod>2015-07-24T15:17:56+08:00</lastmod>
+  </url>
+  <url>
+    <loc>http://cyclecircle.github.io/blog/2015/07/24/multi-thread-06-cyclicbarrier/</loc>
+    <lastmod>2015-07-24T14:55:29+08:00</lastmod>
+  </url>
+  <url>
     <loc>http://cyclecircle.github.io/blog/2015/07/23/android-security/</loc>
     <lastmod>2015-07-23T14:36:25+08:00</lastmod>
   </url>

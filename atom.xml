@@ -4,7 +4,7 @@
   <title><![CDATA[Xiaobin]]></title>
   <link href="http://cyclecircle.github.io/atom.xml" rel="self"/>
   <link href="http://cyclecircle.github.io/"/>
-  <updated>2015-07-24T11:47:42+08:00</updated>
+  <updated>2015-07-27T11:28:37+08:00</updated>
   <id>http://cyclecircle.github.io/</id>
   <author>
     <name><![CDATA[xiaobin]]></name>
@@ -12,6 +12,395 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[JAVA多线程08-Exchanger]]></title>
+    <link href="http://cyclecircle.github.io/blog/2015/07/24/multi-thread-08-exchanger/"/>
+    <updated>2015-07-24T15:33:12+08:00</updated>
+    <id>http://cyclecircle.github.io/blog/2015/07/24/multi-thread-08-exchanger</id>
+    <content type="html"><![CDATA[<p>Exchanger用来实现两个线程之间的数据交换，如果一个线程先到，那就会等待与它交换数据的线程也到达，
+才能交换，交换完成后才能继续做后面的事情</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">ExchangerDemo</span>
+</span><span class='line'><span class="o">{</span>
+</span><span class='line'>  
+</span><span class='line'>  <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span>
+</span><span class='line'>  <span class="o">{</span>
+</span><span class='line'>      <span class="n">ExecutorService</span> <span class="n">executorService</span> <span class="o">=</span> <span class="n">Executors</span><span class="o">.</span><span class="na">newCachedThreadPool</span><span class="o">();</span>
+</span><span class='line'>      <span class="n">Exchanger</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">exchanger</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Exchanger</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;();</span>
+</span><span class='line'>      
+</span><span class='line'>      <span class="n">executorService</span><span class="o">.</span><span class="na">execute</span><span class="o">(</span><span class="k">new</span> <span class="nf">Runnable</span><span class="o">()</span>
+</span><span class='line'>      <span class="o">{</span>
+</span><span class='line'>          
+</span><span class='line'>          <span class="nd">@Override</span>
+</span><span class='line'>          <span class="kd">public</span> <span class="kt">void</span> <span class="nf">run</span><span class="o">()</span>
+</span><span class='line'>          <span class="o">{</span>
+</span><span class='line'>              <span class="k">try</span>
+</span><span class='line'>              <span class="o">{</span>
+</span><span class='line'>                  <span class="n">String</span> <span class="n">str</span> <span class="o">=</span> <span class="s">&quot;aaa&quot;</span><span class="o">;</span>
+</span><span class='line'>                  <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">().</span><span class="na">getName</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot; ready to change the data &quot;</span> <span class="o">+</span> <span class="n">str</span><span class="o">);</span>
+</span><span class='line'>                  <span class="n">Thread</span><span class="o">.</span><span class="na">sleep</span><span class="o">((</span><span class="kt">long</span><span class="o">)(</span><span class="n">Math</span><span class="o">.</span><span class="na">random</span><span class="o">()</span> <span class="o">*</span> <span class="mi">10000</span><span class="o">));</span>
+</span><span class='line'>                  <span class="n">String</span> <span class="n">str1</span> <span class="o">=</span> <span class="n">exchanger</span><span class="o">.</span><span class="na">exchange</span><span class="o">(</span><span class="n">str</span><span class="o">);</span>
+</span><span class='line'>                  <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">().</span><span class="na">getName</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot; get data &quot;</span> <span class="o">+</span> <span class="n">str1</span><span class="o">);</span>
+</span><span class='line'>              <span class="o">}</span>
+</span><span class='line'>              <span class="k">catch</span> <span class="o">(</span><span class="n">InterruptedException</span> <span class="n">e</span><span class="o">)</span>
+</span><span class='line'>              <span class="o">{</span>
+</span><span class='line'>                  <span class="n">e</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();</span>
+</span><span class='line'>              <span class="o">}</span>
+</span><span class='line'>          <span class="o">}</span>
+</span><span class='line'>      <span class="o">});</span>
+</span><span class='line'>      
+</span><span class='line'>      <span class="n">executorService</span><span class="o">.</span><span class="na">execute</span><span class="o">(</span><span class="k">new</span> <span class="nf">Runnable</span><span class="o">()</span>
+</span><span class='line'>      <span class="o">{</span>
+</span><span class='line'>          
+</span><span class='line'>          <span class="nd">@Override</span>
+</span><span class='line'>          <span class="kd">public</span> <span class="kt">void</span> <span class="nf">run</span><span class="o">()</span>
+</span><span class='line'>          <span class="o">{</span>
+</span><span class='line'>              <span class="k">try</span>
+</span><span class='line'>              <span class="o">{</span>
+</span><span class='line'>                  <span class="n">String</span> <span class="n">str</span> <span class="o">=</span> <span class="s">&quot;bbb&quot;</span><span class="o">;</span>
+</span><span class='line'>                  <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">().</span><span class="na">getName</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot; ready to change the data &quot;</span> <span class="o">+</span> <span class="n">str</span><span class="o">);</span>
+</span><span class='line'>                  <span class="n">Thread</span><span class="o">.</span><span class="na">sleep</span><span class="o">((</span><span class="kt">long</span><span class="o">)(</span><span class="n">Math</span><span class="o">.</span><span class="na">random</span><span class="o">()</span> <span class="o">*</span> <span class="mi">10000</span><span class="o">));</span>
+</span><span class='line'>                  <span class="n">String</span> <span class="n">str1</span> <span class="o">=</span> <span class="n">exchanger</span><span class="o">.</span><span class="na">exchange</span><span class="o">(</span><span class="n">str</span><span class="o">);</span>
+</span><span class='line'>                  <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">().</span><span class="na">getName</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot; get data &quot;</span> <span class="o">+</span> <span class="n">str1</span><span class="o">);</span>
+</span><span class='line'>              <span class="o">}</span>
+</span><span class='line'>              <span class="k">catch</span> <span class="o">(</span><span class="n">InterruptedException</span> <span class="n">e</span><span class="o">)</span>
+</span><span class='line'>              <span class="o">{</span>
+</span><span class='line'>                  <span class="n">e</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();</span>
+</span><span class='line'>              <span class="o">}</span>
+</span><span class='line'>          <span class="o">}</span>
+</span><span class='line'>      <span class="o">});</span>
+</span><span class='line'>      
+</span><span class='line'>      <span class="n">executorService</span><span class="o">.</span><span class="na">shutdown</span><span class="o">();</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>结果：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">pool</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">thread</span><span class="o">-</span><span class="mi">1</span> <span class="n">ready</span> <span class="n">to</span> <span class="n">change</span> <span class="n">the</span> <span class="n">data</span> <span class="n">aaa</span>
+</span><span class='line'><span class="n">pool</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">thread</span><span class="o">-</span><span class="mi">2</span> <span class="n">ready</span> <span class="n">to</span> <span class="n">change</span> <span class="n">the</span> <span class="n">data</span> <span class="n">bbb</span>
+</span><span class='line'><span class="n">pool</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">thread</span><span class="o">-</span><span class="mi">2</span> <span class="n">get</span> <span class="n">data</span> <span class="n">aaa</span>
+</span><span class='line'><span class="n">pool</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">thread</span><span class="o">-</span><span class="mi">1</span> <span class="n">get</span> <span class="n">data</span> <span class="n">bbb</span>
+</span></code></pre></td></tr></table></div></figure>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[JAVA多线程07-CountDownLatch]]></title>
+    <link href="http://cyclecircle.github.io/blog/2015/07/24/multi-thread-07-countdownlatch/"/>
+    <updated>2015-07-24T15:17:56+08:00</updated>
+    <id>http://cyclecircle.github.io/blog/2015/07/24/multi-thread-07-countdownlatch</id>
+    <content type="html"><![CDATA[<p>CountDownLatch计数器，可以很容易的实现类似裁判与运动员，一份文件等待多个批复等问题</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">CountDownLatchDemo</span>
+</span><span class='line'><span class="o">{</span>
+</span><span class='line'>  
+</span><span class='line'>  <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span>
+</span><span class='line'>  <span class="o">{</span>
+</span><span class='line'>      <span class="n">ExecutorService</span> <span class="n">executorService</span> <span class="o">=</span> <span class="n">Executors</span><span class="o">.</span><span class="na">newCachedThreadPool</span><span class="o">();</span>
+</span><span class='line'>      <span class="kd">final</span> <span class="n">CountDownLatch</span> <span class="n">cdOrder</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">CountDownLatch</span><span class="o">(</span><span class="mi">1</span><span class="o">);</span>
+</span><span class='line'>      <span class="kd">final</span> <span class="n">CountDownLatch</span> <span class="n">cdAnswer</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">CountDownLatch</span><span class="o">(</span><span class="mi">3</span><span class="o">);</span>
+</span><span class='line'>      <span class="k">for</span><span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span>
+</span><span class='line'>      <span class="o">{</span>
+</span><span class='line'>          <span class="n">Runnable</span> <span class="n">runnable</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">Runnable</span><span class="o">()</span>
+</span><span class='line'>          <span class="o">{</span>
+</span><span class='line'>              
+</span><span class='line'>              <span class="nd">@Override</span>
+</span><span class='line'>              <span class="kd">public</span> <span class="kt">void</span> <span class="nf">run</span><span class="o">()</span>
+</span><span class='line'>              <span class="o">{</span>
+</span><span class='line'>                  <span class="k">try</span>
+</span><span class='line'>                  <span class="o">{</span>
+</span><span class='line'>                      <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">().</span><span class="na">getName</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot; ready to go&quot;</span><span class="o">);</span>
+</span><span class='line'>                      <span class="n">cdOrder</span><span class="o">.</span><span class="na">await</span><span class="o">();</span>
+</span><span class='line'>                      <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">().</span><span class="na">getName</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot; running&quot;</span><span class="o">);</span>
+</span><span class='line'>                      <span class="n">Thread</span><span class="o">.</span><span class="na">sleep</span><span class="o">((</span><span class="kt">long</span><span class="o">)(</span><span class="n">Math</span><span class="o">.</span><span class="na">random</span><span class="o">()</span> <span class="o">*</span> <span class="mi">10000</span><span class="o">));</span>
+</span><span class='line'>                      <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">().</span><span class="na">getName</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot; return the result&quot;</span><span class="o">);</span>
+</span><span class='line'>                      <span class="n">cdAnswer</span><span class="o">.</span><span class="na">countDown</span><span class="o">();</span>
+</span><span class='line'>                  <span class="o">}</span>
+</span><span class='line'>                  <span class="k">catch</span> <span class="o">(</span><span class="n">InterruptedException</span> <span class="n">e</span><span class="o">)</span>
+</span><span class='line'>                  <span class="o">{</span>
+</span><span class='line'>                      <span class="n">e</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();</span>
+</span><span class='line'>                  <span class="o">}</span>
+</span><span class='line'>              <span class="o">}</span>
+</span><span class='line'>          <span class="o">};</span>
+</span><span class='line'>          
+</span><span class='line'>          <span class="n">executorService</span><span class="o">.</span><span class="na">execute</span><span class="o">(</span><span class="n">runnable</span><span class="o">);</span>
+</span><span class='line'>      <span class="o">}</span>
+</span><span class='line'>      
+</span><span class='line'>      
+</span><span class='line'>      <span class="k">try</span>
+</span><span class='line'>      <span class="o">{</span>
+</span><span class='line'>          <span class="n">Thread</span><span class="o">.</span><span class="na">sleep</span><span class="o">((</span><span class="kt">long</span><span class="o">)(</span><span class="n">Math</span><span class="o">.</span><span class="na">random</span><span class="o">()</span> <span class="o">*</span> <span class="mi">10000</span><span class="o">));</span>
+</span><span class='line'>          <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">().</span><span class="na">getName</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot; ready to send order&quot;</span><span class="o">);</span>
+</span><span class='line'>          <span class="n">cdOrder</span><span class="o">.</span><span class="na">countDown</span><span class="o">();</span>
+</span><span class='line'>          <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">().</span><span class="na">getName</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot; sent order&quot;</span><span class="o">);</span>
+</span><span class='line'>          <span class="n">cdAnswer</span><span class="o">.</span><span class="na">await</span><span class="o">();</span>
+</span><span class='line'>          <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">().</span><span class="na">getName</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot; get all results&quot;</span><span class="o">);</span>
+</span><span class='line'>      <span class="o">}</span>
+</span><span class='line'>      <span class="k">catch</span> <span class="o">(</span><span class="n">InterruptedException</span> <span class="n">e</span><span class="o">)</span>
+</span><span class='line'>      <span class="o">{</span>
+</span><span class='line'>          <span class="n">e</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();</span>
+</span><span class='line'>      <span class="o">}</span>
+</span><span class='line'>      
+</span><span class='line'>      <span class="n">executorService</span><span class="o">.</span><span class="na">shutdown</span><span class="o">();</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>结果：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">pool</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">thread</span><span class="o">-</span><span class="mi">3</span> <span class="n">ready</span> <span class="n">to</span> <span class="n">go</span>
+</span><span class='line'><span class="n">pool</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">thread</span><span class="o">-</span><span class="mi">1</span> <span class="n">ready</span> <span class="n">to</span> <span class="n">go</span>
+</span><span class='line'><span class="n">pool</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">thread</span><span class="o">-</span><span class="mi">2</span> <span class="n">ready</span> <span class="n">to</span> <span class="n">go</span>
+</span><span class='line'><span class="n">main</span> <span class="n">ready</span> <span class="n">to</span> <span class="n">send</span> <span class="n">order</span>
+</span><span class='line'><span class="n">main</span> <span class="n">sent</span> <span class="n">order</span>
+</span><span class='line'><span class="n">pool</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">thread</span><span class="o">-</span><span class="mi">3</span> <span class="n">running</span>
+</span><span class='line'><span class="n">pool</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">thread</span><span class="o">-</span><span class="mi">1</span> <span class="n">running</span>
+</span><span class='line'><span class="n">pool</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">thread</span><span class="o">-</span><span class="mi">2</span> <span class="n">running</span>
+</span><span class='line'><span class="n">pool</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">thread</span><span class="o">-</span><span class="mi">3</span> <span class="k">return</span> <span class="n">the</span> <span class="n">result</span>
+</span><span class='line'><span class="n">pool</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">thread</span><span class="o">-</span><span class="mi">2</span> <span class="k">return</span> <span class="n">the</span> <span class="n">result</span>
+</span><span class='line'><span class="n">pool</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">thread</span><span class="o">-</span><span class="mi">1</span> <span class="k">return</span> <span class="n">the</span> <span class="n">result</span>
+</span><span class='line'><span class="n">main</span> <span class="n">get</span> <span class="n">all</span> <span class="n">results</span>
+</span></code></pre></td></tr></table></div></figure>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[JAVA多线程06-CyclicBarrier]]></title>
+    <link href="http://cyclecircle.github.io/blog/2015/07/24/multi-thread-06-cyclicbarrier/"/>
+    <updated>2015-07-24T14:55:29+08:00</updated>
+    <id>http://cyclecircle.github.io/blog/2015/07/24/multi-thread-06-cyclicbarrier</id>
+    <content type="html"><![CDATA[<p>CyclicBarrier可以实现的功能是：多个线程一起工作，要同时达到某种效果后才能做下一件事，就好像
+一群人出去玩，每个人是一个线程，约定在一个地方集合，只有当全部人到达那个地方再能前往目的地。
+CyclicBarrier就可以解决这样的问题</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">CyclicBarrierDemo</span>
+</span><span class='line'><span class="o">{</span>
+</span><span class='line'>  
+</span><span class='line'>  <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span>
+</span><span class='line'>  <span class="o">{</span>
+</span><span class='line'>      <span class="n">ExecutorService</span> <span class="n">executorService</span> <span class="o">=</span> <span class="n">Executors</span><span class="o">.</span><span class="na">newCachedThreadPool</span><span class="o">();</span>
+</span><span class='line'>      <span class="kd">final</span> <span class="n">CyclicBarrier</span> <span class="n">cyclicBarrier</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">CyclicBarrier</span><span class="o">(</span><span class="mi">3</span><span class="o">);</span>
+</span><span class='line'>      <span class="k">for</span><span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span>
+</span><span class='line'>      <span class="o">{</span>
+</span><span class='line'>          <span class="n">Runnable</span> <span class="n">runnable</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">Runnable</span><span class="o">()</span>
+</span><span class='line'>          <span class="o">{</span>
+</span><span class='line'>              
+</span><span class='line'>              <span class="nd">@Override</span>
+</span><span class='line'>              <span class="kd">public</span> <span class="kt">void</span> <span class="nf">run</span><span class="o">()</span>
+</span><span class='line'>              <span class="o">{</span>
+</span><span class='line'>                  <span class="k">try</span>
+</span><span class='line'>                  <span class="o">{</span>
+</span><span class='line'>                      <span class="n">Thread</span><span class="o">.</span><span class="na">sleep</span><span class="o">((</span><span class="kt">long</span><span class="o">)(</span><span class="n">Math</span><span class="o">.</span><span class="na">random</span><span class="o">()</span> <span class="o">*</span> <span class="mi">10000</span><span class="o">));</span>
+</span><span class='line'>                      <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">().</span><span class="na">getName</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot; arrived 1 &quot;</span> <span class="o">+</span>
+</span><span class='line'>                                  <span class="o">(</span><span class="n">cyclicBarrier</span><span class="o">.</span><span class="na">getNumberWaiting</span><span class="o">()</span> <span class="o">==</span> <span class="mi">2</span> <span class="o">?</span> <span class="s">&quot;all number arrived, keep going&quot;</span> <span class="o">:</span> <span class="s">&quot;waiting&quot;</span><span class="o">));</span>
+</span><span class='line'>                      <span class="n">cyclicBarrier</span><span class="o">.</span><span class="na">await</span><span class="o">();</span>
+</span><span class='line'>                      
+</span><span class='line'>                      <span class="n">Thread</span><span class="o">.</span><span class="na">sleep</span><span class="o">((</span><span class="kt">long</span><span class="o">)(</span><span class="n">Math</span><span class="o">.</span><span class="na">random</span><span class="o">()</span> <span class="o">*</span> <span class="mi">10000</span><span class="o">));</span>
+</span><span class='line'>                      <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">().</span><span class="na">getName</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot; arrived 2 &quot;</span> <span class="o">+</span>
+</span><span class='line'>                                  <span class="o">(</span><span class="n">cyclicBarrier</span><span class="o">.</span><span class="na">getNumberWaiting</span><span class="o">()</span> <span class="o">==</span> <span class="mi">2</span> <span class="o">?</span> <span class="s">&quot;all number arrived, keep going&quot;</span> <span class="o">:</span> <span class="s">&quot;waiting&quot;</span><span class="o">));</span>
+</span><span class='line'>                      <span class="n">cyclicBarrier</span><span class="o">.</span><span class="na">await</span><span class="o">();</span>
+</span><span class='line'>                      
+</span><span class='line'>                      <span class="n">Thread</span><span class="o">.</span><span class="na">sleep</span><span class="o">((</span><span class="kt">long</span><span class="o">)(</span><span class="n">Math</span><span class="o">.</span><span class="na">random</span><span class="o">()</span> <span class="o">*</span> <span class="mi">10000</span><span class="o">));</span>
+</span><span class='line'>                      <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">().</span><span class="na">getName</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot; arrived 3 &quot;</span> <span class="o">+</span>
+</span><span class='line'>                                  <span class="o">(</span><span class="n">cyclicBarrier</span><span class="o">.</span><span class="na">getNumberWaiting</span><span class="o">()</span> <span class="o">==</span> <span class="mi">2</span> <span class="o">?</span> <span class="s">&quot;all number arrived, keep going&quot;</span> <span class="o">:</span> <span class="s">&quot;waiting&quot;</span><span class="o">));</span>
+</span><span class='line'>                      <span class="n">cyclicBarrier</span><span class="o">.</span><span class="na">await</span><span class="o">();</span>
+</span><span class='line'>                      
+</span><span class='line'>                  <span class="o">}</span>
+</span><span class='line'>                  <span class="k">catch</span> <span class="o">(</span><span class="n">Exception</span> <span class="n">e</span><span class="o">)</span>
+</span><span class='line'>                  <span class="o">{</span>
+</span><span class='line'>                      <span class="n">e</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();</span>
+</span><span class='line'>                  <span class="o">}</span>
+</span><span class='line'>              <span class="o">}</span>
+</span><span class='line'>          <span class="o">};</span>
+</span><span class='line'>          
+</span><span class='line'>          <span class="n">executorService</span><span class="o">.</span><span class="na">execute</span><span class="o">(</span><span class="n">runnable</span><span class="o">);</span>
+</span><span class='line'>      <span class="o">}</span>
+</span><span class='line'>      <span class="n">executorService</span><span class="o">.</span><span class="na">shutdown</span><span class="o">();</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Android安全浅析]]></title>

@@ -9,8 +9,25 @@
 	<meta name="author" content="xiaobin">
 
 	
-	<meta name="description" content="Comments Android安全浅析 killBackgroundProcesses引起的事件 前一段时间，知乎上有一个非常热门的话题，就是“美团通过killBackgroundProcesses来杀死竞争对手APP”，
-但是这个话题感觉炒作的成份更多点，或被一些有心人放大了来说， &hellip;">
+	<meta name="description" content="Comments JAVA多线程08-Exchanger Exchanger用来实现两个线程之间的数据交换，如果一个线程先到，那就会等待与它交换数据的线程也到达，
+才能交换，交换完成后才能继续做后面的事情 1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18 &hellip;">
 	
 
   <!-- http://t.co/dKP3o1e -->
@@ -92,6 +109,467 @@
 			<div class="mid-col-container">
 				<div id="content" class="inner">
 <div itemscope itemtype="http://schema.org/Blog">
+
+
+    <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+	<div class="meta">
+		<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-07-24T15:33:12+08:00" data-updated="true" itemprop="datePublished"></time></div>
+		<div class="tags">
+
+</div>
+		
+			<span class="comments"><a href="/blog/2015/07/24/multi-thread-08-exchanger/#disqus_thread">Comments</a></span>
+		
+	</div>
+	<h1 class="title" itemprop="name"><a href="/blog/2015/07/24/multi-thread-08-exchanger/" itemprop="url">JAVA多线程08-Exchanger</a></h1>
+	<div class="entry-content" itemprop="articleBody">
+		<p>Exchanger用来实现两个线程之间的数据交换，如果一个线程先到，那就会等待与它交换数据的线程也到达，
+才能交换，交换完成后才能继续做后面的事情</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">ExchangerDemo</span>
+</span><span class='line'><span class="o">{</span>
+</span><span class='line'>  
+</span><span class='line'>  <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span>
+</span><span class='line'>  <span class="o">{</span>
+</span><span class='line'>      <span class="n">ExecutorService</span> <span class="n">executorService</span> <span class="o">=</span> <span class="n">Executors</span><span class="o">.</span><span class="na">newCachedThreadPool</span><span class="o">();</span>
+</span><span class='line'>      <span class="n">Exchanger</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">exchanger</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Exchanger</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;();</span>
+</span><span class='line'>      
+</span><span class='line'>      <span class="n">executorService</span><span class="o">.</span><span class="na">execute</span><span class="o">(</span><span class="k">new</span> <span class="nf">Runnable</span><span class="o">()</span>
+</span><span class='line'>      <span class="o">{</span>
+</span><span class='line'>          
+</span><span class='line'>          <span class="nd">@Override</span>
+</span><span class='line'>          <span class="kd">public</span> <span class="kt">void</span> <span class="nf">run</span><span class="o">()</span>
+</span><span class='line'>          <span class="o">{</span>
+</span><span class='line'>              <span class="k">try</span>
+</span><span class='line'>              <span class="o">{</span>
+</span><span class='line'>                  <span class="n">String</span> <span class="n">str</span> <span class="o">=</span> <span class="s">&quot;aaa&quot;</span><span class="o">;</span>
+</span><span class='line'>                  <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">().</span><span class="na">getName</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot; ready to change the data &quot;</span> <span class="o">+</span> <span class="n">str</span><span class="o">);</span>
+</span><span class='line'>                  <span class="n">Thread</span><span class="o">.</span><span class="na">sleep</span><span class="o">((</span><span class="kt">long</span><span class="o">)(</span><span class="n">Math</span><span class="o">.</span><span class="na">random</span><span class="o">()</span> <span class="o">*</span> <span class="mi">10000</span><span class="o">));</span>
+</span><span class='line'>                  <span class="n">String</span> <span class="n">str1</span> <span class="o">=</span> <span class="n">exchanger</span><span class="o">.</span><span class="na">exchange</span><span class="o">(</span><span class="n">str</span><span class="o">);</span>
+</span><span class='line'>                  <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">().</span><span class="na">getName</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot; get data &quot;</span> <span class="o">+</span> <span class="n">str1</span><span class="o">);</span>
+</span><span class='line'>              <span class="o">}</span>
+</span><span class='line'>              <span class="k">catch</span> <span class="o">(</span><span class="n">InterruptedException</span> <span class="n">e</span><span class="o">)</span>
+</span><span class='line'>              <span class="o">{</span>
+</span><span class='line'>                  <span class="n">e</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();</span>
+</span><span class='line'>              <span class="o">}</span>
+</span><span class='line'>          <span class="o">}</span>
+</span><span class='line'>      <span class="o">});</span>
+</span><span class='line'>      
+</span><span class='line'>      <span class="n">executorService</span><span class="o">.</span><span class="na">execute</span><span class="o">(</span><span class="k">new</span> <span class="nf">Runnable</span><span class="o">()</span>
+</span><span class='line'>      <span class="o">{</span>
+</span><span class='line'>          
+</span><span class='line'>          <span class="nd">@Override</span>
+</span><span class='line'>          <span class="kd">public</span> <span class="kt">void</span> <span class="nf">run</span><span class="o">()</span>
+</span><span class='line'>          <span class="o">{</span>
+</span><span class='line'>              <span class="k">try</span>
+</span><span class='line'>              <span class="o">{</span>
+</span><span class='line'>                  <span class="n">String</span> <span class="n">str</span> <span class="o">=</span> <span class="s">&quot;bbb&quot;</span><span class="o">;</span>
+</span><span class='line'>                  <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">().</span><span class="na">getName</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot; ready to change the data &quot;</span> <span class="o">+</span> <span class="n">str</span><span class="o">);</span>
+</span><span class='line'>                  <span class="n">Thread</span><span class="o">.</span><span class="na">sleep</span><span class="o">((</span><span class="kt">long</span><span class="o">)(</span><span class="n">Math</span><span class="o">.</span><span class="na">random</span><span class="o">()</span> <span class="o">*</span> <span class="mi">10000</span><span class="o">));</span>
+</span><span class='line'>                  <span class="n">String</span> <span class="n">str1</span> <span class="o">=</span> <span class="n">exchanger</span><span class="o">.</span><span class="na">exchange</span><span class="o">(</span><span class="n">str</span><span class="o">);</span>
+</span><span class='line'>                  <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">().</span><span class="na">getName</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot; get data &quot;</span> <span class="o">+</span> <span class="n">str1</span><span class="o">);</span>
+</span><span class='line'>              <span class="o">}</span>
+</span><span class='line'>              <span class="k">catch</span> <span class="o">(</span><span class="n">InterruptedException</span> <span class="n">e</span><span class="o">)</span>
+</span><span class='line'>              <span class="o">{</span>
+</span><span class='line'>                  <span class="n">e</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();</span>
+</span><span class='line'>              <span class="o">}</span>
+</span><span class='line'>          <span class="o">}</span>
+</span><span class='line'>      <span class="o">});</span>
+</span><span class='line'>      
+</span><span class='line'>      <span class="n">executorService</span><span class="o">.</span><span class="na">shutdown</span><span class="o">();</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>结果：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">pool</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">thread</span><span class="o">-</span><span class="mi">1</span> <span class="n">ready</span> <span class="n">to</span> <span class="n">change</span> <span class="n">the</span> <span class="n">data</span> <span class="n">aaa</span>
+</span><span class='line'><span class="n">pool</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">thread</span><span class="o">-</span><span class="mi">2</span> <span class="n">ready</span> <span class="n">to</span> <span class="n">change</span> <span class="n">the</span> <span class="n">data</span> <span class="n">bbb</span>
+</span><span class='line'><span class="n">pool</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">thread</span><span class="o">-</span><span class="mi">2</span> <span class="n">get</span> <span class="n">data</span> <span class="n">aaa</span>
+</span><span class='line'><span class="n">pool</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">thread</span><span class="o">-</span><span class="mi">1</span> <span class="n">get</span> <span class="n">data</span> <span class="n">bbb</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+		
+		
+	</div>
+
+</article>
+
+
+    <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+	<div class="meta">
+		<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-07-24T15:17:56+08:00" data-updated="true" itemprop="datePublished"></time></div>
+		<div class="tags">
+
+</div>
+		
+			<span class="comments"><a href="/blog/2015/07/24/multi-thread-07-countdownlatch/#disqus_thread">Comments</a></span>
+		
+	</div>
+	<h1 class="title" itemprop="name"><a href="/blog/2015/07/24/multi-thread-07-countdownlatch/" itemprop="url">JAVA多线程07-CountDownLatch</a></h1>
+	<div class="entry-content" itemprop="articleBody">
+		<p>CountDownLatch计数器，可以很容易的实现类似裁判与运动员，一份文件等待多个批复等问题</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">CountDownLatchDemo</span>
+</span><span class='line'><span class="o">{</span>
+</span><span class='line'>  
+</span><span class='line'>  <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span>
+</span><span class='line'>  <span class="o">{</span>
+</span><span class='line'>      <span class="n">ExecutorService</span> <span class="n">executorService</span> <span class="o">=</span> <span class="n">Executors</span><span class="o">.</span><span class="na">newCachedThreadPool</span><span class="o">();</span>
+</span><span class='line'>      <span class="kd">final</span> <span class="n">CountDownLatch</span> <span class="n">cdOrder</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">CountDownLatch</span><span class="o">(</span><span class="mi">1</span><span class="o">);</span>
+</span><span class='line'>      <span class="kd">final</span> <span class="n">CountDownLatch</span> <span class="n">cdAnswer</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">CountDownLatch</span><span class="o">(</span><span class="mi">3</span><span class="o">);</span>
+</span><span class='line'>      <span class="k">for</span><span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span>
+</span><span class='line'>      <span class="o">{</span>
+</span><span class='line'>          <span class="n">Runnable</span> <span class="n">runnable</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">Runnable</span><span class="o">()</span>
+</span><span class='line'>          <span class="o">{</span>
+</span><span class='line'>              
+</span><span class='line'>              <span class="nd">@Override</span>
+</span><span class='line'>              <span class="kd">public</span> <span class="kt">void</span> <span class="nf">run</span><span class="o">()</span>
+</span><span class='line'>              <span class="o">{</span>
+</span><span class='line'>                  <span class="k">try</span>
+</span><span class='line'>                  <span class="o">{</span>
+</span><span class='line'>                      <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">().</span><span class="na">getName</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot; ready to go&quot;</span><span class="o">);</span>
+</span><span class='line'>                      <span class="n">cdOrder</span><span class="o">.</span><span class="na">await</span><span class="o">();</span>
+</span><span class='line'>                      <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">().</span><span class="na">getName</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot; running&quot;</span><span class="o">);</span>
+</span><span class='line'>                      <span class="n">Thread</span><span class="o">.</span><span class="na">sleep</span><span class="o">((</span><span class="kt">long</span><span class="o">)(</span><span class="n">Math</span><span class="o">.</span><span class="na">random</span><span class="o">()</span> <span class="o">*</span> <span class="mi">10000</span><span class="o">));</span>
+</span><span class='line'>                      <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">().</span><span class="na">getName</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot; return the result&quot;</span><span class="o">);</span>
+</span><span class='line'>                      <span class="n">cdAnswer</span><span class="o">.</span><span class="na">countDown</span><span class="o">();</span>
+</span><span class='line'>                  <span class="o">}</span>
+</span><span class='line'>                  <span class="k">catch</span> <span class="o">(</span><span class="n">InterruptedException</span> <span class="n">e</span><span class="o">)</span>
+</span><span class='line'>                  <span class="o">{</span>
+</span><span class='line'>                      <span class="n">e</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();</span>
+</span><span class='line'>                  <span class="o">}</span>
+</span><span class='line'>              <span class="o">}</span>
+</span><span class='line'>          <span class="o">};</span>
+</span><span class='line'>          
+</span><span class='line'>          <span class="n">executorService</span><span class="o">.</span><span class="na">execute</span><span class="o">(</span><span class="n">runnable</span><span class="o">);</span>
+</span><span class='line'>      <span class="o">}</span>
+</span><span class='line'>      
+</span><span class='line'>      
+</span><span class='line'>      <span class="k">try</span>
+</span><span class='line'>      <span class="o">{</span>
+</span><span class='line'>          <span class="n">Thread</span><span class="o">.</span><span class="na">sleep</span><span class="o">((</span><span class="kt">long</span><span class="o">)(</span><span class="n">Math</span><span class="o">.</span><span class="na">random</span><span class="o">()</span> <span class="o">*</span> <span class="mi">10000</span><span class="o">));</span>
+</span><span class='line'>          <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">().</span><span class="na">getName</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot; ready to send order&quot;</span><span class="o">);</span>
+</span><span class='line'>          <span class="n">cdOrder</span><span class="o">.</span><span class="na">countDown</span><span class="o">();</span>
+</span><span class='line'>          <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">().</span><span class="na">getName</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot; sent order&quot;</span><span class="o">);</span>
+</span><span class='line'>          <span class="n">cdAnswer</span><span class="o">.</span><span class="na">await</span><span class="o">();</span>
+</span><span class='line'>          <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">().</span><span class="na">getName</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot; get all results&quot;</span><span class="o">);</span>
+</span><span class='line'>      <span class="o">}</span>
+</span><span class='line'>      <span class="k">catch</span> <span class="o">(</span><span class="n">InterruptedException</span> <span class="n">e</span><span class="o">)</span>
+</span><span class='line'>      <span class="o">{</span>
+</span><span class='line'>          <span class="n">e</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();</span>
+</span><span class='line'>      <span class="o">}</span>
+</span><span class='line'>      
+</span><span class='line'>      <span class="n">executorService</span><span class="o">.</span><span class="na">shutdown</span><span class="o">();</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>结果：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">pool</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">thread</span><span class="o">-</span><span class="mi">3</span> <span class="n">ready</span> <span class="n">to</span> <span class="n">go</span>
+</span><span class='line'><span class="n">pool</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">thread</span><span class="o">-</span><span class="mi">1</span> <span class="n">ready</span> <span class="n">to</span> <span class="n">go</span>
+</span><span class='line'><span class="n">pool</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">thread</span><span class="o">-</span><span class="mi">2</span> <span class="n">ready</span> <span class="n">to</span> <span class="n">go</span>
+</span><span class='line'><span class="n">main</span> <span class="n">ready</span> <span class="n">to</span> <span class="n">send</span> <span class="n">order</span>
+</span><span class='line'><span class="n">main</span> <span class="n">sent</span> <span class="n">order</span>
+</span><span class='line'><span class="n">pool</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">thread</span><span class="o">-</span><span class="mi">3</span> <span class="n">running</span>
+</span><span class='line'><span class="n">pool</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">thread</span><span class="o">-</span><span class="mi">1</span> <span class="n">running</span>
+</span><span class='line'><span class="n">pool</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">thread</span><span class="o">-</span><span class="mi">2</span> <span class="n">running</span>
+</span><span class='line'><span class="n">pool</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">thread</span><span class="o">-</span><span class="mi">3</span> <span class="k">return</span> <span class="n">the</span> <span class="n">result</span>
+</span><span class='line'><span class="n">pool</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">thread</span><span class="o">-</span><span class="mi">2</span> <span class="k">return</span> <span class="n">the</span> <span class="n">result</span>
+</span><span class='line'><span class="n">pool</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">thread</span><span class="o">-</span><span class="mi">1</span> <span class="k">return</span> <span class="n">the</span> <span class="n">result</span>
+</span><span class='line'><span class="n">main</span> <span class="n">get</span> <span class="n">all</span> <span class="n">results</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+		
+		
+	</div>
+
+</article>
+
+
+    <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+	<div class="meta">
+		<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-07-24T14:55:29+08:00" data-updated="true" itemprop="datePublished"></time></div>
+		<div class="tags">
+
+</div>
+		
+			<span class="comments"><a href="/blog/2015/07/24/multi-thread-06-cyclicbarrier/#disqus_thread">Comments</a></span>
+		
+	</div>
+	<h1 class="title" itemprop="name"><a href="/blog/2015/07/24/multi-thread-06-cyclicbarrier/" itemprop="url">JAVA多线程06-CyclicBarrier</a></h1>
+	<div class="entry-content" itemprop="articleBody">
+		<p>CyclicBarrier可以实现的功能是：多个线程一起工作，要同时达到某种效果后才能做下一件事，就好像
+一群人出去玩，每个人是一个线程，约定在一个地方集合，只有当全部人到达那个地方再能前往目的地。
+CyclicBarrier就可以解决这样的问题</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">CyclicBarrierDemo</span>
+</span><span class='line'><span class="o">{</span>
+</span><span class='line'>  
+</span><span class='line'>  <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span>
+</span><span class='line'>  <span class="o">{</span>
+</span><span class='line'>      <span class="n">ExecutorService</span> <span class="n">executorService</span> <span class="o">=</span> <span class="n">Executors</span><span class="o">.</span><span class="na">newCachedThreadPool</span><span class="o">();</span>
+</span><span class='line'>      <span class="kd">final</span> <span class="n">CyclicBarrier</span> <span class="n">cyclicBarrier</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">CyclicBarrier</span><span class="o">(</span><span class="mi">3</span><span class="o">);</span>
+</span><span class='line'>      <span class="k">for</span><span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span>
+</span><span class='line'>      <span class="o">{</span>
+</span><span class='line'>          <span class="n">Runnable</span> <span class="n">runnable</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">Runnable</span><span class="o">()</span>
+</span><span class='line'>          <span class="o">{</span>
+</span><span class='line'>              
+</span><span class='line'>              <span class="nd">@Override</span>
+</span><span class='line'>              <span class="kd">public</span> <span class="kt">void</span> <span class="nf">run</span><span class="o">()</span>
+</span><span class='line'>              <span class="o">{</span>
+</span><span class='line'>                  <span class="k">try</span>
+</span><span class='line'>                  <span class="o">{</span>
+</span><span class='line'>                      <span class="n">Thread</span><span class="o">.</span><span class="na">sleep</span><span class="o">((</span><span class="kt">long</span><span class="o">)(</span><span class="n">Math</span><span class="o">.</span><span class="na">random</span><span class="o">()</span> <span class="o">*</span> <span class="mi">10000</span><span class="o">));</span>
+</span><span class='line'>                      <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">().</span><span class="na">getName</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot; arrived 1 &quot;</span> <span class="o">+</span>
+</span><span class='line'>                                  <span class="o">(</span><span class="n">cyclicBarrier</span><span class="o">.</span><span class="na">getNumberWaiting</span><span class="o">()</span> <span class="o">==</span> <span class="mi">2</span> <span class="o">?</span> <span class="s">&quot;all number arrived, keep going&quot;</span> <span class="o">:</span> <span class="s">&quot;waiting&quot;</span><span class="o">));</span>
+</span><span class='line'>                      <span class="n">cyclicBarrier</span><span class="o">.</span><span class="na">await</span><span class="o">();</span>
+</span><span class='line'>                      
+</span><span class='line'>                      <span class="n">Thread</span><span class="o">.</span><span class="na">sleep</span><span class="o">((</span><span class="kt">long</span><span class="o">)(</span><span class="n">Math</span><span class="o">.</span><span class="na">random</span><span class="o">()</span> <span class="o">*</span> <span class="mi">10000</span><span class="o">));</span>
+</span><span class='line'>                      <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">().</span><span class="na">getName</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot; arrived 2 &quot;</span> <span class="o">+</span>
+</span><span class='line'>                                  <span class="o">(</span><span class="n">cyclicBarrier</span><span class="o">.</span><span class="na">getNumberWaiting</span><span class="o">()</span> <span class="o">==</span> <span class="mi">2</span> <span class="o">?</span> <span class="s">&quot;all number arrived, keep going&quot;</span> <span class="o">:</span> <span class="s">&quot;waiting&quot;</span><span class="o">));</span>
+</span><span class='line'>                      <span class="n">cyclicBarrier</span><span class="o">.</span><span class="na">await</span><span class="o">();</span>
+</span><span class='line'>                      
+</span><span class='line'>                      <span class="n">Thread</span><span class="o">.</span><span class="na">sleep</span><span class="o">((</span><span class="kt">long</span><span class="o">)(</span><span class="n">Math</span><span class="o">.</span><span class="na">random</span><span class="o">()</span> <span class="o">*</span> <span class="mi">10000</span><span class="o">));</span>
+</span><span class='line'>                      <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">().</span><span class="na">getName</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot; arrived 3 &quot;</span> <span class="o">+</span>
+</span><span class='line'>                                  <span class="o">(</span><span class="n">cyclicBarrier</span><span class="o">.</span><span class="na">getNumberWaiting</span><span class="o">()</span> <span class="o">==</span> <span class="mi">2</span> <span class="o">?</span> <span class="s">&quot;all number arrived, keep going&quot;</span> <span class="o">:</span> <span class="s">&quot;waiting&quot;</span><span class="o">));</span>
+</span><span class='line'>                      <span class="n">cyclicBarrier</span><span class="o">.</span><span class="na">await</span><span class="o">();</span>
+</span><span class='line'>                      
+</span><span class='line'>                  <span class="o">}</span>
+</span><span class='line'>                  <span class="k">catch</span> <span class="o">(</span><span class="n">Exception</span> <span class="n">e</span><span class="o">)</span>
+</span><span class='line'>                  <span class="o">{</span>
+</span><span class='line'>                      <span class="n">e</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();</span>
+</span><span class='line'>                  <span class="o">}</span>
+</span><span class='line'>              <span class="o">}</span>
+</span><span class='line'>          <span class="o">};</span>
+</span><span class='line'>          
+</span><span class='line'>          <span class="n">executorService</span><span class="o">.</span><span class="na">execute</span><span class="o">(</span><span class="n">runnable</span><span class="o">);</span>
+</span><span class='line'>      <span class="o">}</span>
+</span><span class='line'>      <span class="n">executorService</span><span class="o">.</span><span class="na">shutdown</span><span class="o">();</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+		
+		
+	</div>
+
+</article>
 
 
     <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
@@ -1612,450 +2090,11 @@ apk替换成别的apk，这样子就会让安装进去的apk拥有意想不到�
 
 </article>
 
-
-    <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
-	<div class="meta">
-		<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2015-07-02T09:56:22+08:00" data-updated="true" itemprop="datePublished"></time></div>
-		<div class="tags">
-
-</div>
-		
-			<span class="comments"><a href="/blog/2015/07/02/c-plus-plus-class-and-object-copy/#disqus_thread">Comments</a></span>
-		
-	</div>
-	<h1 class="title" itemprop="name"><a href="/blog/2015/07/02/c-plus-plus-class-and-object-copy/" itemprop="url">编写一个好的C++类以及对象的复制问题</a></h1>
-	<div class="entry-content" itemprop="articleBody">
-		<p>当一个类包含一个指针成员，它指向动态分配的内存（这些内存是在构造函数中使用new分配的，并在析构
-函数中使用delete进行释放）。复制这个类的对象时，将复制其指针成员，但不复制指针的缓冲区，这称为
-浅复制，容易发生不可预知的问题</p>
-
-<p>所以我们需要使用复制构造函数确保深复制</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
-<span class='line-number'>44</span>
-<span class='line-number'>45</span>
-<span class='line-number'>46</span>
-<span class='line-number'>47</span>
-<span class='line-number'>48</span>
-<span class='line-number'>49</span>
-<span class='line-number'>50</span>
-<span class='line-number'>51</span>
-<span class='line-number'>52</span>
-<span class='line-number'>53</span>
-<span class='line-number'>54</span>
-<span class='line-number'>55</span>
-<span class='line-number'>56</span>
-<span class='line-number'>57</span>
-<span class='line-number'>58</span>
-<span class='line-number'>59</span>
-<span class='line-number'>60</span>
-<span class='line-number'>61</span>
-<span class='line-number'>62</span>
-<span class='line-number'>63</span>
-<span class='line-number'>64</span>
-<span class='line-number'>65</span>
-<span class='line-number'>66</span>
-<span class='line-number'>67</span>
-<span class='line-number'>68</span>
-<span class='line-number'>69</span>
-<span class='line-number'>70</span>
-<span class='line-number'>71</span>
-<span class='line-number'>72</span>
-<span class='line-number'>73</span>
-<span class='line-number'>74</span>
-</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="cp">#include &lt;iostream&gt;</span>
-</span><span class='line'><span class="k">using</span> <span class="k">namespace</span> <span class="n">std</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">class</span> <span class="nc">MyString</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="k">private</span><span class="o">:</span>
-</span><span class='line'>        <span class="kt">char</span><span class="o">*</span> <span class="n">Buffer</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">public</span><span class="o">:</span>
-</span><span class='line'>        <span class="n">MyString</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">InitialInput</span><span class="p">)</span>
-</span><span class='line'>        <span class="p">{</span>
-</span><span class='line'>            <span class="k">if</span><span class="p">(</span><span class="n">InitialInput</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span>
-</span><span class='line'>            <span class="p">{</span>
-</span><span class='line'>                <span class="n">Buffer</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">char</span> <span class="p">[</span><span class="n">strlen</span><span class="p">(</span><span class="n">InitialInput</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">];</span>
-</span><span class='line'>                <span class="n">strcpy</span><span class="p">(</span><span class="n">Buffer</span><span class="p">,</span> <span class="n">InitialInput</span><span class="p">);</span>
-</span><span class='line'>            <span class="p">}</span>
-</span><span class='line'>            <span class="k">else</span>
-</span><span class='line'>            <span class="p">{</span>
-</span><span class='line'>                <span class="n">Buffer</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
-</span><span class='line'>            <span class="p">}</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="c1">//copy constroctor</span>
-</span><span class='line'>        <span class="n">MyString</span><span class="p">(</span><span class="k">const</span> <span class="n">MyString</span><span class="o">&amp;</span> <span class="n">CopySource</span><span class="p">)</span>
-</span><span class='line'>        <span class="p">{</span>
-</span><span class='line'>            <span class="k">if</span><span class="p">(</span><span class="n">CopySource</span><span class="p">.</span><span class="n">Buffer</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span>
-</span><span class='line'>            <span class="p">{</span>
-</span><span class='line'>                <span class="n">Buffer</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">char</span> <span class="p">[</span><span class="n">strlen</span><span class="p">(</span><span class="n">CopySource</span><span class="p">.</span><span class="n">Buffer</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">];</span>
-</span><span class='line'>
-</span><span class='line'>                <span class="n">strcpy</span><span class="p">(</span><span class="n">Buffer</span><span class="p">,</span> <span class="n">CopySource</span><span class="p">.</span><span class="n">Buffer</span><span class="p">);</span>
-</span><span class='line'>            <span class="p">}</span>
-</span><span class='line'>            <span class="k">else</span>
-</span><span class='line'>            <span class="p">{</span>
-</span><span class='line'>                <span class="n">Buffer</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
-</span><span class='line'>            <span class="p">}</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="c1">//destructor</span>
-</span><span class='line'>        <span class="o">~</span><span class="n">MyString</span><span class="p">()</span>
-</span><span class='line'>        <span class="p">{</span>
-</span><span class='line'>            <span class="k">if</span><span class="p">(</span><span class="n">Buffer</span> <span class="o">!=</span> <span class="n">null</span><span class="p">)</span>
-</span><span class='line'>            <span class="p">{</span>
-</span><span class='line'>                <span class="k">delete</span><span class="p">[]</span> <span class="n">Buffer</span><span class="p">;</span>
-</span><span class='line'>            <span class="p">}</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="kt">int</span> <span class="n">GetLength</span><span class="p">()</span>
-</span><span class='line'>        <span class="p">{</span>
-</span><span class='line'>            <span class="k">return</span> <span class="n">strlen</span><span class="p">(</span><span class="n">Buffer</span><span class="p">);</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">GetString</span><span class="p">()</span>
-</span><span class='line'>        <span class="p">{</span>
-</span><span class='line'>            <span class="k">return</span> <span class="n">Buffer</span><span class="p">;</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'><span class="p">};</span>
-</span><span class='line'>
-</span><span class='line'><span class="kt">void</span> <span class="nf">UseMyString</span><span class="p">(</span><span class="n">MyString</span> <span class="n">Input</span><span class="p">)</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;String buffer in MyString is &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">Input</span><span class="p">.</span><span class="n">GetLength</span><span class="p">();</span>
-</span><span class='line'>    <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot; characters long&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Buffer contains: &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">Input</span><span class="p">.</span><span class="n">GetString</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
-</span><span class='line'>    <span class="k">return</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="n">MyString</span> <span class="n">SayHello</span><span class="p">(</span><span class="s">&quot;hello from string class&quot;</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="n">UseMyString</span><span class="p">(</span><span class="n">SayHello</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<blockquote><p>由于C++的特征和需求，有些情况下对象会自动被复制，常见就是在函数参数的传递时，这样子就会频繁
-的调用复制构造函数，如果复制构造函数的开销大的话，那样就会造成性能问题，所以对于C++ 11来说
-可以编写移动构造函数来解决这个问题，具体查阅C++ 11的相关信息。</p></blockquote>
-
-<p>对于上面这个类，当使用赋值运算进行复制时，还是会进行浅复制的，所以还要重载赋值运算符</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-</pre></td><td class='code'><pre><code class='c++'><span class='line'>        <span class="c1">// copy assignment operator</span>
-</span><span class='line'>        <span class="n">MyString</span><span class="o">&amp;</span> <span class="k">operator</span><span class="o">=</span> <span class="p">(</span><span class="k">const</span> <span class="n">MyString</span><span class="o">&amp;</span> <span class="n">CopySource</span><span class="p">)</span>
-</span><span class='line'>        <span class="p">{</span>
-</span><span class='line'>            <span class="k">if</span><span class="p">((</span><span class="k">this</span> <span class="o">!=</span> <span class="o">&amp;</span><span class="n">CopySource</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">CopySource</span><span class="p">.</span><span class="n">Buffer</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">))</span>
-</span><span class='line'>            <span class="p">{</span>
-</span><span class='line'>                <span class="k">if</span><span class="p">(</span><span class="n">Buffer</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span>
-</span><span class='line'>                <span class="p">{</span>
-</span><span class='line'>                    <span class="k">delete</span><span class="p">[]</span> <span class="n">Buffer</span><span class="p">;</span>
-</span><span class='line'>                <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>                <span class="n">Buffer</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">char</span><span class="p">[</span><span class="n">strlen</span><span class="p">(</span><span class="n">CopySource</span><span class="p">.</span><span class="n">Buffer</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">];</span>
-</span><span class='line'>
-</span><span class='line'>                <span class="n">strcpy</span><span class="p">(</span><span class="n">Buffer</span><span class="p">,</span> <span class="n">CopySource</span><span class="p">.</span><span class="n">Buffer</span><span class="p">);</span>
-</span><span class='line'>            <span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>通过在复制构造函数声明中使用const，可确保复制构造函数不会修改指向的源对象，另外，<strong>复制构造函数的
-参数必须按引用传递</strong>，否则调用它时将复制实参的值，导致于源数据进行浅复制，这样就死循环了。</p>
-
-<p>编写类时应注意的事项</p>
-
-<ul>
-<li>类包含原始指针成员（<code>char*</code>等）时，务必编写复制构造函数和复制赋值运算符</li>
-<li>编写复制构造函数时，务必将接受源对象的参数声明为const引用</li>
-<li>务必将类成员声明为std::string和智能指针类（而不是原始指针），因为它们实现了复制构造函数，可减少工作量</li>
-<li>除非万不得已，不要将类成员声明为原始指针</li>
-</ul>
-
-
-		
-		
-	</div>
-
-</article>
-
-
-    <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
-	<div class="meta">
-		<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2015-07-01T14:28:58+08:00" data-updated="true" itemprop="datePublished"></time></div>
-		<div class="tags">
-
-</div>
-		
-			<span class="comments"><a href="/blog/2015/07/01/c-plus-plus-pointer-and-quoter/#disqus_thread">Comments</a></span>
-		
-	</div>
-	<h1 class="title" itemprop="name"><a href="/blog/2015/07/01/c-plus-plus-pointer-and-quoter/" itemprop="url">C++ 指针和引用</a></h1>
-	<div class="entry-content" itemprop="articleBody">
-		<p>指针是存储内存地址的变量，所以指针是一个变量，指针也占用内存空间，
-因此指针是一种指向内存单元的特殊变量。</p>
-
-<p>作为一种变量，指针也需要声明，<em>可以将指针声明为指向一个内存块，这种指针被称为void指针</em>。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="n">PointedType</span> <span class="o">*</span> <span class="n">PointerVariableName</span><span class="p">;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p><strong>指针一定要初始化，不然就是指向一个随机的内存地址，引发不可预知的问题</strong></p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="n">PointedType</span> <span class="o">*</span> <span class="n">PointerVariableName</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>使用new和delete来进行内存分配和释放</p>
-
-<p><strong>使用new分配出来的内存，一定要用delete来释放，不然就会造成内存泄漏</strong></p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="n">Type</span><span class="o">*</span> <span class="n">pointer</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Type</span><span class="p">;</span>
-</span><span class='line'><span class="n">Type</span><span class="o">*</span> <span class="n">pointers</span><span class="o">=</span> <span class="k">new</span> <span class="n">Type</span><span class="p">[</span><span class="n">NumElements</span><span class="p">];</span>
-</span><span class='line'>
-</span><span class='line'><span class="kt">int</span><span class="o">*</span> <span class="n">pNumber</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">int</span><span class="p">;</span>
-</span><span class='line'><span class="kt">int</span><span class="o">*</span> <span class="n">pNumbers</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">int</span><span class="p">[</span><span class="mi">10</span><span class="p">];</span> <span class="c1">//分配了10个int的空间</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>使用delete释放new分配出来的内存空间</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="n">Type</span><span class="o">*</span> <span class="n">pointer</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Type</span><span class="p">;</span>
-</span><span class='line'><span class="k">delete</span> <span class="n">pointer</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'><span class="kt">int</span><span class="o">*</span> <span class="n">pNumber</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">int</span><span class="p">;</span>
-</span><span class='line'><span class="k">delete</span> <span class="n">pNumber</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'><span class="kt">int</span><span class="o">*</span> <span class="n">pNumbers</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">int</span><span class="p">[</span><span class="mi">10</span><span class="p">];</span>
-</span><span class='line'><span class="k">delete</span><span class="p">[]</span> <span class="n">pNumbers</span><span class="p">;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p><strong>delete只能释放new分配的内存，不能作用于其他</strong></p>
-
-<p>const作用于指针</p>
-
-<p><strong>指针指向的数据为常量，不能修改，但可以修改指针包含的地址</strong></p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="kt">int</span> <span class="n">HoursInDay</span> <span class="o">=</span> <span class="mi">24</span><span class="p">;</span>
-</span><span class='line'><span class="k">const</span> <span class="kt">int</span><span class="o">*</span> <span class="n">pInteger</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">HoursInDay</span><span class="p">;</span>
-</span><span class='line'><span class="kt">int</span> <span class="n">MonthsInYear</span> <span class="o">=</span> <span class="mi">12</span><span class="p">;</span>
-</span><span class='line'><span class="n">pInteger</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">MonthsInYear</span><span class="p">;</span> <span class="c1">//OK</span>
-</span><span class='line'><span class="o">*</span><span class="n">pInteger</span> <span class="o">=</span> <span class="mi">13</span><span class="p">;</span> <span class="c1">//error, cannot change data</span>
-</span><span class='line'><span class="kt">int</span><span class="o">*</span> <span class="n">pAnotherPointerToInt</span> <span class="o">=</span> <span class="n">pInteger</span><span class="p">;</span> <span class="c1">//error cannot assign const to non-const</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p><strong>指针包含的地址是常量，不能修改，但可以修改针指指向的数据</strong></p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="kt">int</span> <span class="n">DaysInMonth</span> <span class="o">=</span> <span class="mi">30</span><span class="p">;</span>
-</span><span class='line'><span class="kt">int</span><span class="o">*</span> <span class="k">const</span> <span class="n">pDaysInMonth</span> <span class="o">=</span> <span class="o">&amp;</span> <span class="n">DaysInMonth</span><span class="p">;</span>
-</span><span class='line'><span class="o">*</span><span class="n">pDaysInMonth</span> <span class="o">=</span> <span class="mi">31</span><span class="p">;</span> <span class="c1">//OK</span>
-</span><span class='line'><span class="kt">int</span> <span class="n">DaysInLunarMonth</span> <span class="o">=</span> <span class="mi">28</span><span class="p">;</span>
-</span><span class='line'><span class="n">pDaysInMonth</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">DaysInLunarMonth</span><span class="p">;</span> <span class="c1">// error cannot change address</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p><strong>指针包含的地址以及指向的值都不能修改</strong></p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="kt">int</span> <span class="n">HoursInDay</span> <span class="o">=</span> <span class="mi">24</span><span class="p">;</span>
-</span><span class='line'><span class="k">const</span> <span class="kt">int</span><span class="o">*</span> <span class="k">const</span> <span class="n">pHoursInDay</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">HoursInDay</span><span class="p">;</span>
-</span><span class='line'><span class="o">*</span><span class="n">pHoursInDay</span> <span class="o">=</span> <span class="mi">25</span><span class="p">;</span> <span class="c1">//error cannot change data</span>
-</span><span class='line'><span class="kt">int</span> <span class="n">DaysInMonth</span> <span class="o">=</span> <span class="mi">30</span><span class="p">;</span>
-</span><span class='line'><span class="n">pHoursInDay</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">DaysInMonth</span><span class="p">;</span> <span class="c1">//error cannot change address</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>引用是变量的别名。声明引用时，需要将其初始化为一个变量，因此引用只是另一种访问变量存储数据的方式</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="n">VarType</span> <span class="n">Original</span> <span class="o">=</span> <span class="n">value</span><span class="p">;</span>
-</span><span class='line'><span class="n">VarType</span><span class="o">&amp;</span> <span class="n">ReferenceVariable</span> <span class="o">=</span> <span class="n">Original</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'><span class="cp">#include &lt;iostream&gt;</span>
-</span><span class='line'><span class="k">using</span> <span class="k">namespace</span> <span class="n">std</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'><span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="kt">int</span> <span class="n">Original</span> <span class="o">=</span> <span class="mi">30</span><span class="p">;</span>
-</span><span class='line'>    <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Original = &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">Original</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
-</span><span class='line'>    <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Original is at address: &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">hex</span> <span class="o">&lt;&lt;</span> <span class="o">&amp;</span><span class="n">Original</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="kt">int</span><span class="o">&amp;</span> <span class="n">Ref</span> <span class="o">=</span> <span class="n">Original</span><span class="p">;</span>
-</span><span class='line'>    <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Ref is at address: &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">hex</span> <span class="o">&lt;&lt;</span> <span class="o">&amp;</span><span class="n">Ref</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="kt">int</span><span class="o">&amp;</span> <span class="n">Ref2</span> <span class="o">=</span> <span class="n">Ref</span><span class="p">;</span>
-</span><span class='line'>    <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Ref2 is at address: &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">hex</span> <span class="o">&lt;&lt;</span> <span class="o">&amp;</span><span class="n">Ref2</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
-</span><span class='line'>    <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Ref2 gets value, Ref2 = &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">dec</span> <span class="o">&lt;&lt;</span> <span class="n">Ref2</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p><strong>引用主要用于函数参数的传递，这样不会进行参数的拷贝</strong></p>
-
-<p>const作用于引用，可以禁止通过引用修改它指向的变量的值</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="kt">int</span> <span class="n">Original</span> <span class="o">=</span> <span class="mi">30</span><span class="p">;</span>
-</span><span class='line'><span class="k">const</span> <span class="kt">int</span><span class="o">&amp;</span> <span class="n">ConstRef</span> <span class="o">=</span> <span class="n">Original</span><span class="p">;</span>
-</span><span class='line'><span class="n">ConstRef</span> <span class="o">=</span> <span class="mi">40</span><span class="p">;</span> <span class="c1">// error cannot change value</span>
-</span><span class='line'><span class="kt">int</span><span class="o">&amp;</span> <span class="n">Ref2</span> <span class="o">=</span> <span class="n">ConstRef</span><span class="p">;</span> <span class="c1">// error Ref2 is not const</span>
-</span><span class='line'><span class="k">const</span> <span class="kt">int</span><span class="o">&amp;</span> <span class="n">ConstRef2</span> <span class="o">=</span> <span class="n">ConstRef</span><span class="p">;</span> <span class="c1">//OK</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-
-
-		
-		
-	</div>
-
-</article>
-
 </div>
 <nav id="pagenavi">
     
+    
+        <a href="2" class="next">Next</a>
     
     <div class="center"><a href="/blog/archives">Blog Archives</a></div>
 </nav></div>
