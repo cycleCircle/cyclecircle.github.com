@@ -9,16 +9,9 @@
 	<meta name="author" content="xiaobin">
 
 	
-	<meta name="description" content="Comments Android Screen Lock 在Android上面做锁屏是一件挺麻烦的事情，要解决的事情还是比较多的 重启 首先就是要重启后能够自动启动，这个还是比较容易的，只要设置一个开机启动就好了 1
-2
-3
-4
-5
-6
-7
-8
-9
-&lt;receiver android: &hellip;">
+	<meta name="description" content="Comments Android M 新特性 指纹识别API 调用FingerprintManager里面的authenticate()方法就可以很轻松的进行指纹识别，当然，我们的app需要
+实现一个UI来提醒用户进行指纹识别， 使用指纹识别还需要加入权限 1
+&lt;uses- &hellip;">
 	
 
   <!-- http://t.co/dKP3o1e -->
@@ -100,6 +93,154 @@
 			<div class="mid-col-container">
 				<div id="content" class="inner">
 <div itemscope itemtype="http://schema.org/Blog">
+
+
+    <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+	<div class="meta">
+		<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-10-16T14:52:54+08:00" data-updated="true" itemprop="datePublished"></time></div>
+		<div class="tags">
+
+</div>
+		
+			<span class="comments"><a href="/blog/2015/10/16/android-m-new-features/#disqus_thread">Comments</a></span>
+		
+	</div>
+	<h1 class="title" itemprop="name"><a href="/blog/2015/10/16/android-m-new-features/" itemprop="url">Android M 新特性</a></h1>
+	<div class="entry-content" itemprop="articleBody">
+		<h3>指纹识别API</h3>
+
+<p>调用FingerprintManager里面的authenticate()方法就可以很轻松的进行指纹识别，当然，我们的app需要
+实现一个UI来提醒用户进行指纹识别，</p>
+
+<p>使用指纹识别还需要加入权限</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="o">&lt;</span><span class="n">uses</span><span class="o">-</span><span class="n">permission</span> <span class="nl">android:</span><span class="n">name</span><span class="o">=</span><span class="s">&quot;android.permission.USE_FINGERPRINT&quot;</span> <span class="o">/&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果使用模拟器来进行测试的话，可以通过adb发送一个指纹来完成测试的</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">adb</span> <span class="o">-</span><span class="n">e</span> <span class="n">emu</span> <span class="n">finger</span> <span class="n">touch</span> <span class="o">&lt;</span><span class="n">finger_id</span><span class="o">&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>删除了Apache HTTP Client</h3>
+
+<h3>用BoringSSL代替OpenSSL</h3>
+
+<p>在使用NDK的时候，不能再像以前一样使用libcrypto.so或libssl.so这些库了</p>
+
+<h3>硬件标识</h3>
+
+<p>WifiInfo.getMacAddress() 和 BluetoothAdapter.getAddress()已经不能再用了，Android M 对这两个方法
+的返回只会是一个固定的值 02:00:00:00:00:00</p>
+
+<p>而且，如果我们想获取附近的WiFi列表或蓝牙列表，Android M 之后就要加上权限了</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">ACCESS_FINE_LOCATION</span>
+</span><span class='line'><span class="n">ACCESS_COARSE_LOCATION</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们不能再像以前一样随意的删除或修改WifiConfiguration了，现在只能够删除或修改自己创建的WifiConfiguration</p>
+
+<h3>Doze和App Standby</h3>
+
+<p>Doze：不充电，屏幕关闭，静止不动一段时间后，就会进入这个模式，它会让系统处于睡眠的状态，但是它
+还是会周期性的唤醒一小段时间，这样子，APP就可以进行一些同步操作以及系统就会处理一些延迟的操作</p>
+
+<p>App Standby：进入这个模式后，系统就会把长时间不使用的APP判断为暂停使用的了，如果没有
+进行充电的话，那么系统就会把这些APP的网络关闭，一些同步的操作都会暂停</p>
+
+<p>只要系统是Android M 以上的，这两种模式就会生效，无论你APP的target API指定的是几</p>
+
+<p>进行Doze之后，APP将无法进行网络访问，无法wake locks,AlarmManager (setExact(), setWindow())这些都
+会等待到周期性唤醒的那一小段时间来处理，如果需要alarm起作用，那么就需要使用setAndAllowWhileIdle()
+或setExactAndAllowWhileIdle() （这两个方法只能唤醒15分钟），需要注意的是，setAlarmClock()是照常起作用的，系统会提前一点时间
+退出Doze模式来让它起作用
+在这个模式下，无法搜索wifi，无法sync adapter, 无法调度JobScheduler</p>
+
+<p>对于推送类的应用，Google推荐用GCM（Google Cloud Message)</p>
+
+<p>对于App Standby：下面的三种情况是不会进入这个模式的</p>
+
+<ul>
+<li><p>当用户显式得运行了APP</p></li>
+<li><p>APP有一个foreground的进程（包括一个activity或者一个foreground service 或者被另外的一个activity
+或foreground service使用</p></li>
+<li><p>APP发送一个Notification，被用户在锁屏界面看到了或通知栏看到了</p></li>
+</ul>
+
+
+<p>要注意的是，如果设备长时间处于闲置状态，那么系统就会允许这些APP访问网络1次每天</p>
+
+<h2>白名单</h2>
+
+<p>Android对于上面那两种模式设置了一个白名单，白名单里面的APP可以进行网络访问和partial wake locks
+但其他限制依然起作用</p>
+
+<p>isIgnoringBatteryOptimizations()可以判断出自己是不是在白名单里面</p>
+
+<p>添加白名单：Settings > Battery > Battery Optimization</p>
+
+<p>REQUEST_IGNORE_BATTERY_OPTIMIZATIONS  权限申请</p>
+
+<p>ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS  跳转到settings</p>
+
+<p>ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS 弹框申请</p>
+
+<h2>adb测试</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">$</span> <span class="n">adb</span> <span class="n">shell</span> <span class="n">dumpsys</span> <span class="n">battery</span> <span class="n">unplug</span>
+</span><span class='line'><span class="n">$</span> <span class="n">adb</span> <span class="n">shell</span> <span class="n">dumpsys</span> <span class="n">deviceidle</span> <span class="n">step</span>
+</span><span class='line'><span class="n">$</span> <span class="n">adb</span> <span class="n">shell</span> <span class="n">dumpsys</span> <span class="n">deviceidle</span> <span class="o">-</span><span class="n">h</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">$</span> <span class="n">adb</span> <span class="n">shell</span> <span class="n">dumpsys</span> <span class="n">battery</span> <span class="n">unplug</span>
+</span><span class='line'><span class="n">$</span> <span class="n">adb</span> <span class="n">shell</span> <span class="n">am</span> <span class="n">set</span><span class="o">-</span><span class="n">inactive</span> <span class="o">&lt;</span><span class="n">packageName</span><span class="o">&gt;</span> <span class="kc">true</span><span class="o">&lt;/</span><span class="n">packageName</span><span class="o">&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">$</span> <span class="n">adb</span> <span class="n">shell</span> <span class="n">am</span> <span class="n">set</span><span class="o">-</span><span class="n">inactive</span> <span class="o">&lt;</span><span class="n">packageName</span><span class="o">&gt;</span> <span class="kc">false</span>
+</span><span class='line'><span class="n">$</span> <span class="n">adb</span> <span class="n">shell</span> <span class="n">am</span> <span class="n">get</span><span class="o">-</span><span class="n">inactive</span> <span class="o">&lt;</span><span class="n">packageName</span><span class="o">&gt;&lt;/</span><span class="n">packageName</span><span class="o">&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+		
+		
+	</div>
+
+</article>
 
 
     <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
@@ -1977,210 +2118,6 @@ apk替换成别的apk，这样子就会让安装进去的apk拥有意想不到�
 
 <p>ThreadLocal会将对应的线程的数据自动回收（当线程死亡时）所以不用担心内存泄漏，当然，还可以自动在
 线程结束的时候调用remove来把ThreadLocal里面的数据删除</p>
-
-		
-		
-	</div>
-
-</article>
-
-
-    <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
-	<div class="meta">
-		<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2015-07-21T16:22:05+08:00" data-updated="true" itemprop="datePublished"></time></div>
-		<div class="tags">
-
-</div>
-		
-			<span class="comments"><a href="/blog/2015/07/21/multi-thread-01-communication/#disqus_thread">Comments</a></span>
-		
-	</div>
-	<h1 class="title" itemprop="name"><a href="/blog/2015/07/21/multi-thread-01-communication/" itemprop="url">JAVA多线程01-线程间的通信</a></h1>
-	<div class="entry-content" itemprop="articleBody">
-		<h1>题目</h1>
-
-<blockquote><p>子线程循环10次，主线程循环100次，然后子线程再循环10次，主线程再循环100次，这样交替循环50次</p></blockquote>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
-<span class='line-number'>44</span>
-<span class='line-number'>45</span>
-<span class='line-number'>46</span>
-<span class='line-number'>47</span>
-<span class='line-number'>48</span>
-<span class='line-number'>49</span>
-<span class='line-number'>50</span>
-<span class='line-number'>51</span>
-<span class='line-number'>52</span>
-<span class='line-number'>53</span>
-<span class='line-number'>54</span>
-<span class='line-number'>55</span>
-<span class='line-number'>56</span>
-<span class='line-number'>57</span>
-<span class='line-number'>58</span>
-<span class='line-number'>59</span>
-<span class='line-number'>60</span>
-<span class='line-number'>61</span>
-<span class='line-number'>62</span>
-<span class='line-number'>63</span>
-<span class='line-number'>64</span>
-<span class='line-number'>65</span>
-<span class='line-number'>66</span>
-<span class='line-number'>67</span>
-<span class='line-number'>68</span>
-<span class='line-number'>69</span>
-<span class='line-number'>70</span>
-<span class='line-number'>71</span>
-<span class='line-number'>72</span>
-<span class='line-number'>73</span>
-<span class='line-number'>74</span>
-<span class='line-number'>75</span>
-<span class='line-number'>76</span>
-<span class='line-number'>77</span>
-<span class='line-number'>78</span>
-<span class='line-number'>79</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">TraditionalThreadCommunication</span>
-</span><span class='line'><span class="o">{</span>
-</span><span class='line'>  
-</span><span class='line'>  <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span>
-</span><span class='line'>  <span class="o">{</span>
-</span><span class='line'>      <span class="n">Business</span> <span class="n">business</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">TraditionalThreadCommunication</span><span class="o">().</span><span class="na">new</span> <span class="n">Business</span><span class="o">();</span>
-</span><span class='line'>      
-</span><span class='line'>      <span class="k">new</span> <span class="nf">Thread</span><span class="o">(</span><span class="k">new</span> <span class="nf">Runnable</span><span class="o">()</span>
-</span><span class='line'>      <span class="o">{</span>
-</span><span class='line'>          
-</span><span class='line'>          <span class="nd">@Override</span>
-</span><span class='line'>          <span class="kd">public</span> <span class="kt">void</span> <span class="nf">run</span><span class="o">()</span>
-</span><span class='line'>          <span class="o">{</span>
-</span><span class='line'>              <span class="k">for</span><span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">50</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span>
-</span><span class='line'>              <span class="o">{</span>
-</span><span class='line'>                  <span class="n">business</span><span class="o">.</span><span class="na">sub</span><span class="o">(</span><span class="n">i</span><span class="o">);</span>
-</span><span class='line'>              <span class="o">}</span>
-</span><span class='line'>          <span class="o">}</span>
-</span><span class='line'>      <span class="o">}).</span><span class="na">start</span><span class="o">();</span>
-</span><span class='line'>      
-</span><span class='line'>      <span class="k">for</span><span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">50</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span>
-</span><span class='line'>      <span class="o">{</span>
-</span><span class='line'>          <span class="n">business</span><span class="o">.</span><span class="na">main</span><span class="o">(</span><span class="n">i</span><span class="o">);</span>
-</span><span class='line'>      <span class="o">}</span>
-</span><span class='line'>  <span class="o">}</span>
-</span><span class='line'>  
-</span><span class='line'>  
-</span><span class='line'>  <span class="kd">class</span> <span class="nc">Business</span>
-</span><span class='line'>  <span class="o">{</span>
-</span><span class='line'>      <span class="kt">boolean</span> <span class="n">isSub</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
-</span><span class='line'>      
-</span><span class='line'>      <span class="kd">public</span> <span class="kd">synchronized</span> <span class="kt">void</span> <span class="nf">sub</span><span class="o">(</span><span class="kt">int</span> <span class="n">i</span><span class="o">)</span>
-</span><span class='line'>      <span class="o">{</span>
-</span><span class='line'>          <span class="k">while</span><span class="o">(!</span><span class="n">isSub</span><span class="o">)</span>
-</span><span class='line'>          <span class="o">{</span>
-</span><span class='line'>              <span class="k">try</span>
-</span><span class='line'>              <span class="o">{</span>
-</span><span class='line'>                  <span class="k">this</span><span class="o">.</span><span class="na">wait</span><span class="o">();</span>
-</span><span class='line'>              <span class="o">}</span>
-</span><span class='line'>              <span class="k">catch</span> <span class="o">(</span><span class="n">InterruptedException</span> <span class="n">e</span><span class="o">)</span>
-</span><span class='line'>              <span class="o">{</span>
-</span><span class='line'>                  <span class="n">e</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();</span>
-</span><span class='line'>              <span class="o">}</span>
-</span><span class='line'>          <span class="o">}</span>
-</span><span class='line'>          
-</span><span class='line'>          <span class="k">for</span><span class="o">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="o">;</span> <span class="n">j</span><span class="o">++)</span>
-</span><span class='line'>          <span class="o">{</span>
-</span><span class='line'>              <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;sub &quot;</span> <span class="o">+</span> <span class="n">j</span> <span class="o">+</span> <span class="s">&quot; looper of &quot;</span> <span class="o">+</span> <span class="n">i</span><span class="o">);</span>
-</span><span class='line'>          <span class="o">}</span>
-</span><span class='line'>          
-</span><span class='line'>          <span class="n">isSub</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
-</span><span class='line'>          <span class="k">this</span><span class="o">.</span><span class="na">notify</span><span class="o">();</span>
-</span><span class='line'>      <span class="o">}</span>
-</span><span class='line'>      
-</span><span class='line'>      <span class="kd">public</span> <span class="kd">synchronized</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="kt">int</span> <span class="n">i</span><span class="o">)</span>
-</span><span class='line'>      <span class="o">{</span>
-</span><span class='line'>          <span class="k">while</span> <span class="o">(</span><span class="n">isSub</span><span class="o">)</span>
-</span><span class='line'>          <span class="o">{</span>
-</span><span class='line'>              <span class="k">try</span>
-</span><span class='line'>              <span class="o">{</span>
-</span><span class='line'>                  <span class="k">this</span><span class="o">.</span><span class="na">wait</span><span class="o">();</span>
-</span><span class='line'>              <span class="o">}</span>
-</span><span class='line'>              <span class="k">catch</span> <span class="o">(</span><span class="n">InterruptedException</span> <span class="n">e</span><span class="o">)</span>
-</span><span class='line'>              <span class="o">{</span>
-</span><span class='line'>                  <span class="n">e</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();</span>
-</span><span class='line'>              <span class="o">}</span>
-</span><span class='line'>          <span class="o">}</span>
-</span><span class='line'>          
-</span><span class='line'>          <span class="k">for</span><span class="o">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="o">;</span> <span class="n">j</span><span class="o">++)</span>
-</span><span class='line'>          <span class="o">{</span>
-</span><span class='line'>              <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;main &quot;</span> <span class="o">+</span> <span class="n">j</span> <span class="o">+</span> <span class="s">&quot; looper of &quot;</span> <span class="o">+</span> <span class="n">i</span><span class="o">);</span>
-</span><span class='line'>          <span class="o">}</span>
-</span><span class='line'>          
-</span><span class='line'>          <span class="n">isSub</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
-</span><span class='line'>          <span class="k">this</span><span class="o">.</span><span class="na">notify</span><span class="o">();</span>
-</span><span class='line'>      <span class="o">}</span>
-</span><span class='line'>  <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>要注意的点</h2>
-
-<ul>
-<li>要把业务封装到一个类里面，这样做同步或其他的就很容易了</li>
-<li>同步方法里面的while很有必要，不要用if代替，因为会有一定的机会出现伪唤醒的状态，所以while体现了水平</li>
-</ul>
-
 
 		
 		

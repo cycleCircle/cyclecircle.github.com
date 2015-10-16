@@ -4,7 +4,7 @@
   <title><![CDATA[Xiaobin]]></title>
   <link href="http://cyclecircle.github.io/atom.xml" rel="self"/>
   <link href="http://cyclecircle.github.io/"/>
-  <updated>2015-07-29T11:52:59+08:00</updated>
+  <updated>2015-10-16T17:02:46+08:00</updated>
   <id>http://cyclecircle.github.io/</id>
   <author>
     <name><![CDATA[xiaobin]]></name>
@@ -12,6 +12,130 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Android M 新特性]]></title>
+    <link href="http://cyclecircle.github.io/blog/2015/10/16/android-m-new-features/"/>
+    <updated>2015-10-16T14:52:54+08:00</updated>
+    <id>http://cyclecircle.github.io/blog/2015/10/16/android-m-new-features</id>
+    <content type="html"><![CDATA[<h3>指纹识别API</h3>
+
+<p>调用FingerprintManager里面的authenticate()方法就可以很轻松的进行指纹识别，当然，我们的app需要
+实现一个UI来提醒用户进行指纹识别，</p>
+
+<p>使用指纹识别还需要加入权限</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="o">&lt;</span><span class="n">uses</span><span class="o">-</span><span class="n">permission</span> <span class="nl">android:</span><span class="n">name</span><span class="o">=</span><span class="s">&quot;android.permission.USE_FINGERPRINT&quot;</span> <span class="o">/&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果使用模拟器来进行测试的话，可以通过adb发送一个指纹来完成测试的</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">adb</span> <span class="o">-</span><span class="n">e</span> <span class="n">emu</span> <span class="n">finger</span> <span class="n">touch</span> <span class="o">&lt;</span><span class="n">finger_id</span><span class="o">&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>删除了Apache HTTP Client</h3>
+
+<h3>用BoringSSL代替OpenSSL</h3>
+
+<p>在使用NDK的时候，不能再像以前一样使用libcrypto.so或libssl.so这些库了</p>
+
+<h3>硬件标识</h3>
+
+<p>WifiInfo.getMacAddress() 和 BluetoothAdapter.getAddress()已经不能再用了，Android M 对这两个方法
+的返回只会是一个固定的值 02:00:00:00:00:00</p>
+
+<p>而且，如果我们想获取附近的WiFi列表或蓝牙列表，Android M 之后就要加上权限了</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">ACCESS_FINE_LOCATION</span>
+</span><span class='line'><span class="n">ACCESS_COARSE_LOCATION</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们不能再像以前一样随意的删除或修改WifiConfiguration了，现在只能够删除或修改自己创建的WifiConfiguration</p>
+
+<h3>Doze和App Standby</h3>
+
+<p>Doze：不充电，屏幕关闭，静止不动一段时间后，就会进入这个模式，它会让系统处于睡眠的状态，但是它
+还是会周期性的唤醒一小段时间，这样子，APP就可以进行一些同步操作以及系统就会处理一些延迟的操作</p>
+
+<p>App Standby：进入这个模式后，系统就会把长时间不使用的APP判断为暂停使用的了，如果没有
+进行充电的话，那么系统就会把这些APP的网络关闭，一些同步的操作都会暂停</p>
+
+<p>只要系统是Android M 以上的，这两种模式就会生效，无论你APP的target API指定的是几</p>
+
+<p>进行Doze之后，APP将无法进行网络访问，无法wake locks,AlarmManager (setExact(), setWindow())这些都
+会等待到周期性唤醒的那一小段时间来处理，如果需要alarm起作用，那么就需要使用setAndAllowWhileIdle()
+或setExactAndAllowWhileIdle() （这两个方法只能唤醒15分钟），需要注意的是，setAlarmClock()是照常起作用的，系统会提前一点时间
+退出Doze模式来让它起作用
+在这个模式下，无法搜索wifi，无法sync adapter, 无法调度JobScheduler</p>
+
+<p>对于推送类的应用，Google推荐用GCM（Google Cloud Message)</p>
+
+<p>对于App Standby：下面的三种情况是不会进入这个模式的</p>
+
+<ul>
+<li><p>当用户显式得运行了APP</p></li>
+<li><p>APP有一个foreground的进程（包括一个activity或者一个foreground service 或者被另外的一个activity
+或foreground service使用</p></li>
+<li><p>APP发送一个Notification，被用户在锁屏界面看到了或通知栏看到了</p></li>
+</ul>
+
+
+<p>要注意的是，如果设备长时间处于闲置状态，那么系统就会允许这些APP访问网络1次每天</p>
+
+<h2>白名单</h2>
+
+<p>Android对于上面那两种模式设置了一个白名单，白名单里面的APP可以进行网络访问和partial wake locks
+但其他限制依然起作用</p>
+
+<p>isIgnoringBatteryOptimizations()可以判断出自己是不是在白名单里面</p>
+
+<p>添加白名单：Settings > Battery > Battery Optimization</p>
+
+<p>REQUEST_IGNORE_BATTERY_OPTIMIZATIONS  权限申请</p>
+
+<p>ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS  跳转到settings</p>
+
+<p>ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS 弹框申请</p>
+
+<h2>adb测试</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">$</span> <span class="n">adb</span> <span class="n">shell</span> <span class="n">dumpsys</span> <span class="n">battery</span> <span class="n">unplug</span>
+</span><span class='line'><span class="n">$</span> <span class="n">adb</span> <span class="n">shell</span> <span class="n">dumpsys</span> <span class="n">deviceidle</span> <span class="n">step</span>
+</span><span class='line'><span class="n">$</span> <span class="n">adb</span> <span class="n">shell</span> <span class="n">dumpsys</span> <span class="n">deviceidle</span> <span class="o">-</span><span class="n">h</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">$</span> <span class="n">adb</span> <span class="n">shell</span> <span class="n">dumpsys</span> <span class="n">battery</span> <span class="n">unplug</span>
+</span><span class='line'><span class="n">$</span> <span class="n">adb</span> <span class="n">shell</span> <span class="n">am</span> <span class="n">set</span><span class="o">-</span><span class="n">inactive</span> <span class="o">&lt;</span><span class="n">packageName</span><span class="o">&gt;</span> <span class="kc">true</span><span class="o">&lt;/</span><span class="n">packageName</span><span class="o">&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">$</span> <span class="n">adb</span> <span class="n">shell</span> <span class="n">am</span> <span class="n">set</span><span class="o">-</span><span class="n">inactive</span> <span class="o">&lt;</span><span class="n">packageName</span><span class="o">&gt;</span> <span class="kc">false</span>
+</span><span class='line'><span class="n">$</span> <span class="n">adb</span> <span class="n">shell</span> <span class="n">am</span> <span class="n">get</span><span class="o">-</span><span class="n">inactive</span> <span class="o">&lt;</span><span class="n">packageName</span><span class="o">&gt;&lt;/</span><span class="n">packageName</span><span class="o">&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Android Screen Lock]]></title>
