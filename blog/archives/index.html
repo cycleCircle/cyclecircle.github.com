@@ -1,69 +1,398 @@
-<!DOCTYPE html>
+
+<!DOCTYPE HTML>
+
 <html>
+
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title></title>
+	<meta charset="utf-8">
+	<title>Blog Archives - </title>
+	<meta name="author" content="">
+
+	
+	<meta name="description" content="2015 Dec 25 Comments 多线程总结 Oct 16 Comments Android M 新特性 Jul 29 Comments Android Screen Lock Jul 24 Comments JAVA多线程08-Exchanger Jul 24 Comments &hellip;">
+	
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<link href="/atom.xml" rel="alternate" title="" type="application/atom+xml">
+	
+	<link rel="canonical" href="http://cyclecircle.github.io/blog/archives/">
+	<link href="/favicon.png" rel="shortcut icon">
+	<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<link href="/stylesheets/font-awesome.min.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+	<link href='http://fonts.googleapis.com/css?family=Nunito:400,300,700' rel='stylesheet' type='text/css'>
+	<!--<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>-->
+	
+  
+
 </head>
+
+
 <body>
-    <div>
-        <audio controls autoplay></audio>
-        <input onclick="startRecording()" type="button" value="录音" />
-        <input onclick="stopRecording()" type="button" value="停止" />
-        <input onclick="playRecording()" type="button" value="播放" />
-        <input onclick="uploadAudio()" type="button" value="提交" />
-        <input onclick="cancelAudio()" type="button" value="取消" />
-    </div>
+	<div class="container">
+		<div class="left-col">
+			<div class="intrude-less">
+			<header id="header" class="inner"><div class="profilepic">
+	<!--<img src="/images/tx.jpg" alt="Profile Picture" style="width: 160px;" />-->
+	<!--
+	<script src="/javascripts/md5.js"></script>
+	<script type="text/javascript">
+		$(function(){
+			//$('.profilepic').append("<img src='http://www.gravatar.com/avatar/" + MD5("") + "?s=160' alt='Profile Picture' style='width: 160px;' />");
+			$('.profilepic').append("<img src='/images/tx.jpg" + MD5("") + "?s=160' alt='Profile Picture' style='width: 160px;' />");
+		});
+	</script>
+	-->
+</div>
+<h1></h1>
 
-    <script type="text/javascript" src="record.js"></script>
+
+<nav id="main-nav"><ul class="main">
+    <li><a href="/">Blog</a></li>
+    <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+<nav id="sub-nav">
+	<div class="social">
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+    	
+    	
+			<a class="rss" href="/atom.xml" title="RSS">RSS</a>
+		
+	</div>
+</nav>
+</header>				
+			</div>
+		</div>	
+		<div class="mid-col">
+			
+				
+			
+			<div class="mid-col-container">
+				<div id="content" class="inner"><div itemscope itemtype="http://schema.org/Blog">
+
+	
 
 
-    <script>
+	
+	
+	<section class="archives"><h1 class="year">2015</h1>
 
-        var recorder;
+<article itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+	<div class="meta">
+		<span class="date"><time datetime="2015-12-25T15:00:16+08:00" itemprop="datePublished">Dec 25</time></span>
+		<br>
+		<span class="tags">
 
-        var audio = document.querySelector('audio');
+</span>
+	    
+	    <span class="comments"><a href="/blog/2015/12/25/multi-thread-summary/#disqus_thread">Comments</a></span>
+	    
+	</div>
+	<h1 class="title" itemprop="name"><a href="/blog/2015/12/25/multi-thread-summary/">多线程总结</a></h1>
+</article>
 
-        function startRecording() {
-            HZRecorder.get(function (rec) {
-                recorder = rec;
-                recorder.start();
-            });
-        }
+	
 
-        function stopRecording() {
-            recorder.stop();
-        }
 
-        function playRecording() {
-            recorder.play(audio);
-        }
+<article itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+	<div class="meta">
+		<span class="date"><time datetime="2015-10-16T14:52:54+08:00" itemprop="datePublished">Oct 16</time></span>
+		<br>
+		<span class="tags">
 
-        function cancelAudio(){
-            recorder.stop();
-            recorder.clear();
-        }
+</span>
+	    
+	    <span class="comments"><a href="/blog/2015/10/16/android-m-new-features/#disqus_thread">Comments</a></span>
+	    
+	</div>
+	<h1 class="title" itemprop="name"><a href="/blog/2015/10/16/android-m-new-features/">Android M 新特性</a></h1>
+</article>
 
-        function uploadAudio() {
-            recorder.upload("/upload", function (state, e) {
-                switch (state) {
-                    case 'uploading':
-                        //var percentComplete = Math.round(e.loaded * 100 / e.total) + '%';
-                        break;
-                    case 'ok':
-                        //alert(e.target.responseText);
-                        alert("上传成功");
-                        break;
-                    case 'error':
-                        alert("上传失败");
-                        break;
-                    case 'cancel':
-                        alert("上传被取消");
-                        break;
-                }
-            });
-        }
+	
 
-    </script>
+
+<article itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+	<div class="meta">
+		<span class="date"><time datetime="2015-07-29T10:20:12+08:00" itemprop="datePublished">Jul 29</time></span>
+		<br>
+		<span class="tags">
+
+</span>
+	    
+	    <span class="comments"><a href="/blog/2015/07/29/android-screen-lock/#disqus_thread">Comments</a></span>
+	    
+	</div>
+	<h1 class="title" itemprop="name"><a href="/blog/2015/07/29/android-screen-lock/">Android Screen Lock</a></h1>
+</article>
+
+	
+
+
+<article itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+	<div class="meta">
+		<span class="date"><time datetime="2015-07-24T15:33:12+08:00" itemprop="datePublished">Jul 24</time></span>
+		<br>
+		<span class="tags">
+
+</span>
+	    
+	    <span class="comments"><a href="/blog/2015/07/24/multi-thread-08-exchanger/#disqus_thread">Comments</a></span>
+	    
+	</div>
+	<h1 class="title" itemprop="name"><a href="/blog/2015/07/24/multi-thread-08-exchanger/">JAVA多线程08-Exchanger</a></h1>
+</article>
+
+	
+
+
+<article itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+	<div class="meta">
+		<span class="date"><time datetime="2015-07-24T15:17:56+08:00" itemprop="datePublished">Jul 24</time></span>
+		<br>
+		<span class="tags">
+
+</span>
+	    
+	    <span class="comments"><a href="/blog/2015/07/24/multi-thread-07-countdownlatch/#disqus_thread">Comments</a></span>
+	    
+	</div>
+	<h1 class="title" itemprop="name"><a href="/blog/2015/07/24/multi-thread-07-countdownlatch/">JAVA多线程07-CountDownLatch</a></h1>
+</article>
+
+	
+
+
+<article itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+	<div class="meta">
+		<span class="date"><time datetime="2015-07-24T14:55:29+08:00" itemprop="datePublished">Jul 24</time></span>
+		<br>
+		<span class="tags">
+
+</span>
+	    
+	    <span class="comments"><a href="/blog/2015/07/24/multi-thread-06-cyclicbarrier/#disqus_thread">Comments</a></span>
+	    
+	</div>
+	<h1 class="title" itemprop="name"><a href="/blog/2015/07/24/multi-thread-06-cyclicbarrier/">JAVA多线程06-CyclicBarrier</a></h1>
+</article>
+
+	
+
+
+<article itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+	<div class="meta">
+		<span class="date"><time datetime="2015-07-23T14:36:25+08:00" itemprop="datePublished">Jul 23</time></span>
+		<br>
+		<span class="tags">
+
+</span>
+	    
+	    <span class="comments"><a href="/blog/2015/07/23/android-security/#disqus_thread">Comments</a></span>
+	    
+	</div>
+	<h1 class="title" itemprop="name"><a href="/blog/2015/07/23/android-security/">Android安全浅析</a></h1>
+</article>
+
+	
+
+
+<article itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+	<div class="meta">
+		<span class="date"><time datetime="2015-07-23T11:18:47+08:00" itemprop="datePublished">Jul 23</time></span>
+		<br>
+		<span class="tags">
+
+</span>
+	    
+	    <span class="comments"><a href="/blog/2015/07/23/multi-thread-05-semaphore/#disqus_thread">Comments</a></span>
+	    
+	</div>
+	<h1 class="title" itemprop="name"><a href="/blog/2015/07/23/multi-thread-05-semaphore/">JAVA多线程05-信号灯Semaphore</a></h1>
+</article>
+
+	
+
+
+<article itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+	<div class="meta">
+		<span class="date"><time datetime="2015-07-23T10:24:26+08:00" itemprop="datePublished">Jul 23</time></span>
+		<br>
+		<span class="tags">
+
+</span>
+	    
+	    <span class="comments"><a href="/blog/2015/07/23/multi-thread-04-condition/#disqus_thread">Comments</a></span>
+	    
+	</div>
+	<h1 class="title" itemprop="name"><a href="/blog/2015/07/23/multi-thread-04-condition/">JAVA多线程04-Condition</a></h1>
+</article>
+
+	
+
+
+<article itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+	<div class="meta">
+		<span class="date"><time datetime="2015-07-22T17:34:21+08:00" itemprop="datePublished">Jul 22</time></span>
+		<br>
+		<span class="tags">
+
+</span>
+	    
+	    <span class="comments"><a href="/blog/2015/07/22/multi-thread-03-read-write-lock/#disqus_thread">Comments</a></span>
+	    
+	</div>
+	<h1 class="title" itemprop="name"><a href="/blog/2015/07/22/multi-thread-03-read-write-lock/">JAVA多线程03-ReadWriteLock</a></h1>
+</article>
+
+	
+
+
+<article itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+	<div class="meta">
+		<span class="date"><time datetime="2015-07-22T10:57:52+08:00" itemprop="datePublished">Jul 22</time></span>
+		<br>
+		<span class="tags">
+
+</span>
+	    
+	    <span class="comments"><a href="/blog/2015/07/22/multi-thread-02-threadlocal/#disqus_thread">Comments</a></span>
+	    
+	</div>
+	<h1 class="title" itemprop="name"><a href="/blog/2015/07/22/multi-thread-02-threadlocal/">JAVA多线程02-ThreadLocal</a></h1>
+</article>
+
+	
+
+
+<article itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+	<div class="meta">
+		<span class="date"><time datetime="2015-07-21T16:22:05+08:00" itemprop="datePublished">Jul 21</time></span>
+		<br>
+		<span class="tags">
+
+</span>
+	    
+	    <span class="comments"><a href="/blog/2015/07/21/multi-thread-01-communication/#disqus_thread">Comments</a></span>
+	    
+	</div>
+	<h1 class="title" itemprop="name"><a href="/blog/2015/07/21/multi-thread-01-communication/">JAVA多线程01-线程间的通信</a></h1>
+</article>
+
+	
+
+
+<article itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+	<div class="meta">
+		<span class="date"><time datetime="2015-07-02T10:50:23+08:00" itemprop="datePublished">Jul  2</time></span>
+		<br>
+		<span class="tags">
+
+</span>
+	    
+	    <span class="comments"><a href="/blog/2015/07/02/c-plus-plus-constructor-and-destructor-skills/#disqus_thread">Comments</a></span>
+	    
+	</div>
+	<h1 class="title" itemprop="name"><a href="/blog/2015/07/02/c-plus-plus-constructor-and-destructor-skills/">C++ 构造函数和析构函数的特别技巧</a></h1>
+</article>
+
+	
+
+
+<article itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+	<div class="meta">
+		<span class="date"><time datetime="2015-07-02T09:56:22+08:00" itemprop="datePublished">Jul  2</time></span>
+		<br>
+		<span class="tags">
+
+</span>
+	    
+	    <span class="comments"><a href="/blog/2015/07/02/c-plus-plus-class-and-object-copy/#disqus_thread">Comments</a></span>
+	    
+	</div>
+	<h1 class="title" itemprop="name"><a href="/blog/2015/07/02/c-plus-plus-class-and-object-copy/">编写一个好的C++类以及对象的复制问题</a></h1>
+</article>
+
+	
+
+
+<article itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+	<div class="meta">
+		<span class="date"><time datetime="2015-07-01T14:28:58+08:00" itemprop="datePublished">Jul  1</time></span>
+		<br>
+		<span class="tags">
+
+</span>
+	    
+	    <span class="comments"><a href="/blog/2015/07/01/c-plus-plus-pointer-and-quoter/#disqus_thread">Comments</a></span>
+	    
+	</div>
+	<h1 class="title" itemprop="name"><a href="/blog/2015/07/01/c-plus-plus-pointer-and-quoter/">C++ 指针和引用</a></h1>
+</article>
+
+  </section>
+</div></div>
+			</div>
+			<footer id="footer" class="inner">Copyright &copy; 2015
+
+    
+
+
+<!--Design credit: <a href="http://shashankmehta.in/archive/2012/greyshade.html">Shashank Mehta</a>-->
+</footer>
+		</div>
+	</div>
+	
+
+<script type="text/javascript">
+      var disqus_shortname = 'cyclecircle';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+<!--
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+-->
+
+
 
 </body>
 </html>
