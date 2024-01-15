@@ -28,7 +28,7 @@ http://39.134.24.166/dbiptv.sn.chinamobile.com/PLTV/88888890/224/3221226193/inde
 #EXTINF:-1 group-title="CCTV",CCTV-15
 http://39.134.24.162/dbiptv.sn.chinamobile.com/PLTV/88888890/224/3221225785/index.m3u8
 #EXTINF:-1 group-title="粤语",广东珠江
-http://zteres.sn.chinamobile.com:6060/000000001000/2000000003000000033/1.m3u8?channel-id=hnbblive&Contentid=2000000003000000033&livemode=1&stbId=3
+http://218.13.170.98:9901/tsfile/live/1000_1.m3u8
 #EXTINF:-1 group-title="粤语",翡翠台
 https://edge6a.v2h-cdn.com/jade/jade.stream/chunklist.m3u8
 #EXTINF:-1 group-title="卫视",湖南卫视
